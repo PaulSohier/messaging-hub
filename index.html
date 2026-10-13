@@ -890,7 +890,6 @@ const NAV_CONFIG = {
 // under a specific audience. Same page ids as before; only the nav grouping moved.
 const TOOLS_NAV = [
   {section:'Cost Modeling', items:[
-    {id:'p3', icon:'', label:'SMS Costs'},
     {id:'p9', icon:'', label:'Full Opt-in Impact'},
     {id:'p11', icon:'', label:'Iterable Migration'},
     {id:'p12', icon:'', label:'FX Client Activations'},
@@ -898,6 +897,7 @@ const TOOLS_NAV = [
   // Older models: kept in the Hub with all their code and data, only moved out of
   // the main menu. Click the group title to open it.
   {section:'Older models', collapsed:true, items:[
+    {id:'p3', icon:'', label:'SMS Costs'},
     {id:'p5', icon:'', label:'Twilio SMS calculator'},
     {id:'p4', icon:'', label:'Global deployment cost'},
     {id:'p6', icon:'', label:'Global deployment Twilio'},
@@ -2714,7 +2714,7 @@ function renderCalc(){
       + '</td>'
       + '<td class="calc-input-cell">'
       +   '<input type="number" class="calc-input calc-segs-input" id="r'+i+'_segs" '
-      +   'value="2" step="1" min="1" max="10" oninput="recalcSMS()" style="width:56px;">'
+      +   'value="'+libUnits(ev.name,2)+'" step="1" min="1" max="10" oninput="recalcSMS()" style="width:56px;">'
       + '</td>'
       + '<td class="calc-orders-cell" id="r'+i+'_orders">—</td>'
       + '<td class="calc-result-cell" id="r'+i+'_result">—</td>'
@@ -2730,7 +2730,7 @@ function renderCalc(){
     + 'Participation % = share of total orders that triggered each SMS event, based on US Power BI data (Jan–Dec 2025). '
     + 'These US rates are used as a proxy for all countries — representing the cost of rolling out the US SMS event system globally. '
     + 'Total orders and SMS cost auto-fill when you select a country. All fields remain editable. '
-    + '<strong>Billing units</strong> are set per event in the table (160 chars = 1 unit, defaulted to 2 since most Ria messages run ~200 characters) — shorten an event\'s message below 160 characters and drop its billing units to 1 to see the savings for just that event. '
+    + '<strong>Billing units</strong> are set per event in the table (160 chars = 1 unit, filled from the live US messages in the Messages Library, or 2 if the library has not loaded) — shorten an event\'s message below 160 characters and drop its billing units to 1 to see the savings for just that event. '
     + '<strong>SMS opt-in scenario</strong> (below) is separate from participation % — it models what happens if the share of customers opted in to SMS changes. '
     + 'Baseline is today\'s real SMS opt-in rate ('+OPTIN_BASELINE_PCT+'%). '
     + 'Used as a proxy for all countries, same as participation % — no other market has its own opt-in data on file yet.'
@@ -2950,7 +2950,7 @@ function renderCalcTwilio(){
       + '</td>'
       + '<td class="calc-input-cell">'
       +   '<input type="number" class="calc-input calc-segs-input-tw" id="tr'+i+'_segs" '
-      +   'value="2" step="1" min="1" max="10" oninput="recalcSMSTwilio()" style="width:56px;">'
+      +   'value="'+libUnits(ev.name,2)+'" step="1" min="1" max="10" oninput="recalcSMSTwilio()" style="width:56px;">'
       + '</td>'
       + '<td class="calc-orders-cell" id="tr'+i+'_orders">—</td>'
       + '<td class="calc-result-cell" id="tr'+i+'_result">—</td>'
@@ -2965,7 +2965,7 @@ function renderCalcTwilio(){
     + 'Same model as the main SMS cost calculator, using Twilio\'s contracted rates (Order Form 00142240.0, effective Aug 1, 2025) instead of Clickatell\'s. '
     + 'Participation % = share of total orders that triggered each SMS event, based on US Power BI data (Jan–Dec 2025), used as a proxy for all countries. '
     + 'Total orders and SMS cost auto-fill when you select a country. '
-    + '<strong>Billing units</strong> are set per event in the table (160 chars = 1 unit, defaulted to 2) — shorten an event\'s message below 160 characters and drop its billing units to 1 to see the savings for just that event. '
+    + '<strong>Billing units</strong> are set per event in the table (160 chars = 1 unit, filled from the live US messages in the Messages Library, or 2 if the library has not loaded) — shorten an event\'s message below 160 characters and drop its billing units to 1 to see the savings for just that event. '
     + 'All fields remain editable.'
     + '</div>'
 
@@ -3146,6 +3146,90 @@ function normalizeIntent(raw) {
 // (which excludes the literal header row along with non-live rows), we map by position instead.
 const SHEET_COLUMNS = ["Product type","Channel","Event that triggers the message send","Message template title","Message","Subject","Language","Send system","Message recipient","From address","Format type","Service","Payment method","Country to","B&M email message incl. HTML","MessageID","Event ID","Agent Company","Intent","Live"];
 
+/* ── MESSAGES LIBRARY SYNC ──
+   One shared source for every cost page and the Activation map. Built from the
+   live B&M rows of the Google Sheet each time the Hub loads:
+   - live SMS events per market (rows with Channel = SMS, a market and an event)
+   - billing units per event: for each event, the SMS units (160 characters = 1 unit,
+     whole numbers) of every live US SMS message, then the most common value
+     (a tie takes the lower value). Same method as the original cost model.
+   The values written in the cost pages stay as a fallback if the sheet cannot load. */
+const LIB = {synced:false, at:null, rows:0, markets:0, live:{}, units:{}, notCosted:[], changes:[]};
+const LIB_UNIT_CHARS = 160;
+
+function libSync(bmRows){
+  const live = {}, unitsList = {}, notCosted = {};
+  let rows = 0;
+  (bmRows || []).forEach(function(r){
+    if(((r['Channel'] || '').trim().toUpperCase()) !== 'SMS') return;
+    const c = (r['Country to'] || '').trim(), ev = (r['Event that triggers the message send'] || '').trim();
+    if(!c || !ev) return;
+    rows++;
+    (live[c] = live[c] || {})[ev] = true;
+    if(c === 'United States'){
+      const len = String(r['Message'] || '').length;
+      if(len > 0) (unitsList[ev] = unitsList[ev] || []).push(Math.ceil(len / LIB_UNIT_CHARS));
+    }
+  });
+  if(!rows) return false;   // sheet not loaded: keep the built-in values
+  const units = {};
+  Object.keys(unitsList).forEach(function(ev){
+    const cnt = {}; unitsList[ev].forEach(function(u){ cnt[u] = (cnt[u] || 0) + 1; });
+    let best = null;
+    Object.keys(cnt).map(Number).sort(function(a,b){ return a-b; }).forEach(function(u){ if(best === null || cnt[u] > cnt[best]) best = u; });
+    units[ev] = best;
+  });
+  LIB.live = {}; Object.keys(live).forEach(function(c){ LIB.live[c] = Object.keys(live[c]); });
+  LIB.units = units; LIB.rows = rows; LIB.markets = Object.keys(live).length;
+  LIB.synced = true; LIB.at = new Date();
+  window._imData = null;   // the cost pages rebuild their data from the library on next render
+  return true;
+}
+
+// Applies the library to a cost model: US_EVENTS items are {n, p, s}; LIVE maps market -> indexes.
+function libApplyToModel(EV, LIVE){
+  if(!LIB.synced) return;
+  const idx = {}; EV.forEach(function(e,i){ idx[e.n] = i; });
+  const before = {}; Object.keys(LIVE).forEach(function(c){ before[c] = LIVE[c].slice(); });
+  EV.forEach(function(e){ if(LIB.units[e.n]) e.s = LIB.units[e.n]; });
+  Object.keys(LIVE).forEach(function(c){ delete LIVE[c]; });
+  const names = {};
+  Object.keys(LIB.live).forEach(function(c){
+    const ix = [];
+    LIB.live[c].forEach(function(n){ if(idx[n] !== undefined) ix.push(idx[n]); else names[n] = true; });
+    if(ix.length) LIVE[c] = ix.sort(function(a,b){ return a-b; });
+  });
+  LIB.notCosted = Object.keys(names).sort();
+  const ch = [];
+  Object.keys(LIVE).sort().forEach(function(c){
+    const was = before[c] || [], now = LIVE[c];
+    const add = now.filter(function(i){ return was.indexOf(i) === -1; }), rem = was.filter(function(i){ return now.indexOf(i) === -1; });
+    if(add.length || rem.length) ch.push(c+': '+add.map(function(i){ return '+ '+EV[i].n; }).concat(rem.map(function(i){ return '- '+EV[i].n; })).join(', '));
+  });
+  Object.keys(before).forEach(function(c){ if(!LIVE[c]) ch.push(c+': '+before[c].map(function(i){ return '- '+EV[i].n; }).join(', ')); });
+  LIB.changes = ch;
+}
+
+function libUnits(name, fallback){ return (LIB.synced && LIB.units[name]) || fallback; }
+
+function libStatusHtml(){
+  const base = 'font-size:11px;line-height:1.6;border-radius:8px;padding:8px 12px;margin-bottom:14px;';
+  if(!LIB.synced){
+    return '<div style="'+base+'background:#FFF7ED;border:1px solid var(--orange);color:#7A3300;"><strong>Built-in values.</strong> The Messages Library has not loaded yet, so live events and billing units come from the snapshot written in the Hub. This page updates when the library loads.</div>';
+  }
+  const t = LIB.at ? LIB.at.toTimeString().slice(0,5) : '';
+  const nc = LIB.notCosted.length;
+  let h = '<div style="'+base+'background:#F0FBF4;border:1px solid #97C459;color:#27500A;"><strong>Synced with the Messages Library</strong> at '+t+': '
+    + LIB.rows+' live SMS messages in '+LIB.markets+' markets. Live events come from the library, and billing units from the real length of the live US messages.';
+  if(LIB.changes.length){
+    h += '<br><strong>Changed since the built-in snapshot:</strong> '+esc(LIB.changes.slice(0,4).join(' | '))+(LIB.changes.length > 4 ? ' | and '+(LIB.changes.length-4)+' more' : '')+'.';
+  }
+  if(nc){
+    h += '<br><span title="'+esc(LIB.notCosted.join(', '))+'">'+nc+' live event'+(nc>1?'s are':' is')+' in the library but not in the cost model, so '+(nc>1?'they are':'it is')+' not costed yet (hover to see which).</span>';
+  }
+  return h+'</div>';
+}
+
 async function fetchSheetTab(tabName) {
   // Server-side filter: only rows where column T (Live) = 'Yes' come back over the wire.
   // Cuts the B&M+Digital payload from 2,012 rows to ~1,162 — same set the dashboard already
@@ -3256,7 +3340,9 @@ function renderOptInImpact(){
   ];
   // Use whatever the person last saved, if anything — otherwise the real
   // 2025 defaults above.
-  const ROWS_TO_USE = (oiSaved && Array.isArray(oiSaved.rows) && oiSaved.rows.length) ? oiSaved.rows : DEFAULT_ROWS;
+  const ROWS_BASE = (oiSaved && Array.isArray(oiSaved.rows) && oiSaved.rows.length) ? oiSaved.rows : DEFAULT_ROWS;
+  // Billing units follow the live US messages in the Messages Library (when it has loaded).
+  const ROWS_TO_USE = ROWS_BASE.map(function(r){ return Object.assign({}, r, {msgs: libUnits(r.name, r.msgs)}); });
 
   const calcCountries = Object.keys(SMS_COSTS).filter(function(c){ return !getRiaSendingOnly() || isRiaSendingCountry(c); }).sort();
   const countryOptions = calcCountries.map(function(co){
@@ -3276,6 +3362,7 @@ function renderOptInImpact(){
   rows += '<tr><td colspan="5" style="padding:8px 10px;"><button onclick="addOptInRow()" style="font-size:11px;font-weight:600;color:var(--purple);background:var(--purple-bg);border:1px solid var(--purple);border-radius:6px;padding:5px 12px;cursor:pointer;">+ Add event</button></td></tr>';
 
   const html = '<div class="calc-wrap">'
+    + libStatusHtml()
 
     // ── Presentation view (what Nick sees) ──────────────────────────
     + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:22px;">'
@@ -3819,6 +3906,7 @@ function renderIterableMigration(){
   // Messages Library. Values are indexes into US_EVENTS. This is real data:
   // the US runs 25 events, while most other markets run only 1 to 4.
   const LIVE_EVENTS = {"Australia":[0,1,18,21],"Austria":[0,18],"Belgium":[0,6,18],"Canada":[0,1,6,13],"Colombia":[0],"Czech Republic":[18],"Denmark":[0,18],"Estonia":[18],"Finland":[0,18],"France":[0,1,18],"French Guiana":[18],"Germany":[0,1,18],"Greece":[18],"Guadeloupe":[18],"Hungary":[18],"Ireland":[18],"Italy":[0,18],"Latvia":[18],"Lebanon":[0],"Luxembourg":[0,18],"Malaysia":[3,18],"Martinique":[18],"Mayotte":[18],"Netherlands":[0,18],"New Zealand":[1,21],"Norway":[0,18],"Oman":[0],"Poland":[0,18],"Portugal":[18],"Reunion":[18],"Romania":[0,18],"Singapore":[7,18,21],"Slovakia":[18],"South Africa":[0],"Spain":[0,18],"Sweden":[0,18],"Switzerland":[0,18],"United Arab Emirates":[0,1],"United Kingdom":[0,18],"United States":[0,1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26]};
+  libApplyToModel(US_EVENTS, LIVE_EVENTS);   // live events and billing units follow the Messages Library
 
   // Iterable contract Q-15068: only the profile allowance matters for new cost.
   const ITER = { profileAllowance: 52000000, profileCPM: 0.50 };   // $ per 1,000 profiles/month
@@ -3834,6 +3922,7 @@ function renderIterableMigration(){
   }).join('');
 
   const html = '<div class="calc-wrap">'
+    + libStatusHtml()
 
     // ── Plain-language explainer ──
     + '<div style="background:var(--purple-bg);border:1px solid var(--purple);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.75;">'
@@ -4132,7 +4221,7 @@ function recalcIterableMigration(){
 
 /* ── FX CLIENT SCENARIO (Clickatell only, no Iterable) ── */
 var FXS_KEY = 'riaMessagingHub_fxScenario';
-window._fxs = window._fxs || {combos:{}, scenario:'current', optin:64};
+window._fxs = window._fxs || {combos:{}, scenario:'current', optin:64, units:{}};
 
 function renderFxScenario(){
   if(!window._imData) renderIterableMigration();   // loads the shared rate and event data
@@ -4141,7 +4230,7 @@ function renderFxScenario(){
   try{
     const raw = localStorage.getItem(FXS_KEY);
     const p = raw ? JSON.parse(raw) : null;
-    if(p && p.version === 1){ S.combos = p.combos || {}; S.scenario = p.scenario || 'current'; S.optin = p.optin || 64; }
+    if(p && p.version === 1){ S.combos = p.combos || {}; S.scenario = p.scenario || 'current'; S.optin = p.optin || 64; S.units = p.units || {}; }
   }catch(e){}
 
   const countries = Object.keys(D.ORDERS).filter(function(c){ return D.CLICKATELL[c] !== undefined && D.ORDERS[c] > 0; }).sort();
@@ -4159,7 +4248,8 @@ function renderFxScenario(){
     return '<label style="display:flex;align-items:center;gap:7px;font-size:11px;padding:3px 5px;cursor:pointer;">'
       + '<input type="checkbox" class="fxs-ev" value="'+i+'" style="cursor:pointer;">'
       + '<span style="flex:1;">'+esc(e.n)+'</span>'
-      + '<span style="color:var(--hint);font-size:10px;white-space:nowrap;">'+e.p.toFixed(3)+'% of orders &middot; '+e.s+' seg</span></label>';
+      + '<span style="color:var(--hint);font-size:10px;white-space:nowrap;display:flex;align-items:center;gap:4px;">'+e.p.toFixed(3)+'% of orders &middot; '
+      + '<input type="number" min="1" max="10" step="1" value="'+((S.units && S.units[i]) || e.s)+'" title="Billing units (SMS segments) for this message" onclick="event.stopPropagation()" onchange="fxsSetUnit('+i+',this.value)" style="width:40px;padding:1px 3px;font-size:10px;border:1px solid var(--border-mid);border-radius:4px;background:var(--card);color:var(--text);"> seg</span></label>';
   }).join('');
 
   const card = 'background:var(--card);border:1px solid var(--border);border-radius:var(--radius);';
@@ -4167,9 +4257,10 @@ function renderFxScenario(){
   const inp = 'padding:8px 12px;border-radius:7px;border:1px solid var(--border-mid);background:var(--card);font-size:13px;color:var(--text);';
 
   const html = '<div class="calc-wrap">'
+    + libStatusHtml()
     + '<div style="background:var(--purple-bg);border:1px solid var(--purple);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.75;">'
     + '<div style="font-weight:700;margin-bottom:6px;">What this page answers</div>'
-    + 'Pick any markets and any messages, add them to the list, and see <strong>how much extra SMS would cost per year</strong> if we turn them on in FX Client, sending with Clickatell. Nothing here involves Iterable. You can add different events for different markets, then export the result as a picture.'
+    + 'Pick any markets and any messages, add them to the list, and see <strong>how much extra SMS would cost per year</strong> if we turn them on in FX Client, sending with Clickatell. Nothing here involves Iterable. You can add different events for different markets, change the billing units of a message to test a shorter text, then export the result as a picture.'
     + '</div>'
 
     + '<div id="fxs-headline" style="font-size:19px;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:18px;">&nbsp;</div>'
@@ -4233,6 +4324,18 @@ function renderFxScenario(){
   fxsUpdateCounts();
   document.querySelectorAll('.fxs-cc, .fxs-ev').forEach(function(cb){ cb.addEventListener('change', fxsUpdateCounts); });
   fxsRefresh();
+}
+
+function fxsSetUnit(i, v){
+  const S = window._fxs, D = window._imData;
+  const n = Math.max(1, Math.min(10, Math.round(parseFloat(v) || 0)));
+  if(!S.units) S.units = {};
+  if(n === D.US_EVENTS[i].s) delete S.units[i]; else S.units[i] = n;
+  fxsRefresh();
+}
+function fxsUnits(i){
+  const S = window._fxs, D = window._imData;
+  return (S.units && S.units[i]) || D.US_EVENTS[i].s;
 }
 
 function fxsUpdateCounts(){
@@ -4305,7 +4408,8 @@ function fxsCompute(){
       const e = D.US_EVENTS[i];
       const live = liveIdx.indexOf(i) !== -1;
       const fires = (e.p/100) * orders * scale;
-      return {i:i, name:e.n, live:live, sms:fires*e.s, cost:fires*e.s*rate};
+      const u = fxsUnits(i);
+      return {i:i, name:e.n, live:live, sms:fires*u, cost:fires*u*rate};
     });
     const extra = items.filter(function(x){ return !x.live; });
     const r = {c:c, items:items, sms:0, cost:0, n:extra.length};
@@ -4366,7 +4470,7 @@ function fxsRefresh(){
     } else note.style.display = 'none';
   }
 
-  try{ localStorage.setItem(FXS_KEY, JSON.stringify({version:1, combos:S.combos, scenario:S.scenario, optin:S.optin})); }catch(e){}
+  try{ localStorage.setItem(FXS_KEY, JSON.stringify({version:1, combos:S.combos, scenario:S.scenario, optin:S.optin, units:S.units||{}})); }catch(e){}
 }
 
 /* ── Export ── */
@@ -4448,7 +4552,7 @@ function fxsBuildCanvas(){
   g.fillStyle = '#6B6B6B'; g.font = font('400', 11);
   const foot = [
     'Estimate. Event rates and message length come from real 2025 US data, applied as a proxy to each market\'s 2025 order volume (the US figure is measured).',
-    'Only messages that are not live today are counted. Carrier: Clickatell. This view does not include any Iterable cost.'
+    'Only messages that are not live today are counted. Carrier: Clickatell. This view does not include any Iterable cost.'+(Object.keys(S.units||{}).length ? ' Billing units edited for '+Object.keys(S.units).length+' message'+(Object.keys(S.units).length>1?'s':'')+'.' : '')
   ];
   foot.forEach(function(t,k){ g.fillText(t, PAD, y+30+k*16); });
   g.fillStyle = '#AAAAAA'; g.fillText('Ria B&M Messaging Hub', PAD, y+30+2*16+6);
@@ -4514,6 +4618,7 @@ function renderActivation(){
 
   document.getElementById('p13-content').innerHTML =
     '<div class="act-wrap">'
+    + libStatusHtml()
     + '<div class="act-intro"><b>What is activated today.</b> Only B&amp;M SMS events that are live in FX Client, for Ria. Each market is compared with the United States ('+REF+' events live). Volumes and costs are estimates, modelled from the 2025 US event rates and each market\'s 2025 orders.</div>'
     + '<div class="act-main">'
     + '<section class="act-card act-mapcard">'
@@ -4721,6 +4826,8 @@ async function loadSheetData() {
   );
 
   if(indicator) indicator.textContent = added > 0 ? `${added} loaded` : 'Sheet in sync';
+
+  libSync(bmRows);   // live events and billing units for every cost page and the Activation map
 
   populateP1CountryOptions();
 
