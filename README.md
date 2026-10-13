@@ -1,6 +1,6 @@
-# Messaging Hub V5.6.0.0
+# Messaging Hub V5.9.0.0
 
-Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them.
+Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
 ## What is this?
 
@@ -14,7 +14,7 @@ Three switches at the top of the sidebar control what you see.
 
 **Audience switcher: B&M or Digital.** For Ria this is a real structural split, B&M messaging is sheet-fed while Digital comes live from Iterable. The same switch is labelled Consumer and Corporate when Xe is selected, and is disabled for now because the Xe data has no such split in it.
 
-**Mode switcher: Messaging or Costs.** Messaging holds the exploration pages. Costs holds the calculators, and is Ria B&M only.
+**Mode switcher: Messaging, Costs or Activation.** Messaging holds the exploration pages. Costs holds the calculators. Activation holds the map of what is live today. Costs and Activation are Ria B&M only, so the audience switch is hidden in those two modes, and Xe shows a short "Ria B&M only" message there.
 
 ## What is inside
 
@@ -62,16 +62,38 @@ Answers one question: what would SMS cost if every customer opted in. It builds 
 The same question modelled a different way, grouped by delivery path rather than by individual event. Cash pickup counts as one journey sending two messages, for example. Kept alongside the event version rather than replacing it, so the two approaches can be compared.
 
 **Iterable migration simulator**
-Models what moving B&M SMS from FX Client to Iterable would cost. It separates the two cost types that behave differently: the SMS sending cost, which is paid to a carrier either way and varies by market, and the Iterable platform cost, which is paid once for the whole migration regardless of how many markets are included.
+Shows how much B&M SMS would cost per year in the markets and for the events you choose. The headline reads like "Sending X in these markets costs about $X per year in SMS". Below it, a table gives the SMS per year and the cost per year for each market.
 
-Controls cover which markets to migrate (multi-select, so a phased migration can be modelled), Clickatell or Twilio as the carrier, today's opt-in rate or full opt-in, and which events are in scope. The event scope defaults to what is actually live in each market today, since the US runs 25 live SMS events while most other markets run only one to four. Switching to a custom event set shows how much activating new events would add.
+The Iterable contract is already paid, so the page shows no platform, contract, allowance or overage cost. Only the SMS cost is modelled, because that is paid to a carrier and changes with the market.
 
-Iterable contract figures (Quote Q-15068) are prefilled and editable. Profiles added and current Digital usage default to blank or zero, because those numbers are not known yet, and the page says so on screen rather than hiding it.
+Controls cover which markets to include (multi-select, so a phased plan can be modelled), Clickatell or Twilio as the carrier, today's opt-in rate or full opt-in, and which events are in scope. The event scope defaults to what is actually live in each market today, since the US runs 25 live SMS events while most other markets run only one to four. Switching to a custom event set shows how much activating new events would add. When the chosen events cost more than what is live today, the headline adds "That is $X more than today".
+
+A small Profiles box lets you check whether adding B&M customers would go above the 52,000,000 profile allowance of the Iterable contract (Quote Q-15068). A fee only appears when the total goes above the allowance. Left blank, no profile fee is shown.
+
+**FX Client scenario**
+Answers a different question: what would it cost if we turn on more messages in FX Client, sending with Clickatell, with no Iterable at all. It is built to work like the simulator, but with a list.
+
+- Pick any markets and any events, then press "Add to list". You can add several times, so each market can have its own events.
+- Events already live in a market are shown as "(live)" and are not counted. Only new activations add cost.
+- Each event chip shows its own yearly cost, and has an x to remove it. Each market has an x too.
+- The headline gives the extra SMS cost per year, with three tiles: extra cost, extra SMS and number of activations.
+- Opt-in scenario works like the other pages (today's rate or full opt-in).
+- "Export picture (PNG)" builds an image with the totals and one row per market (events turned on, share bar, SMS per year, cost per year), with a preview and a download. "Export CSV" gives one line per market and event.
+- The list is saved in the browser.
 
 ### Methodology
 
 **How We Calculate This**
 Plain-language breakdown of the cost concepts used throughout, the participation-rate proxy model, what "Live" means and how it is enforced, and every data source behind the numbers.
+
+### Activation
+
+**SMS activation map**
+A world map of what is activated today as B&M SMS in FX Client, for Ria only. Each market is coloured by how many events it has live, compared with the United States (25 events live). Markets with nothing live are grey.
+
+Click a market on the map, or in the ranking list, to zoom in. The side panel then shows the events live and not live, with an estimate of the SMS per year and the cost per year for each. For events not live yet, it shows what they would cost, and the total if all of them were turned on. Orders are 2025 orders and rates are Clickatell rates, with the same US proxy method as the cost pages. Scroll to zoom, drag to move, Escape to go back to the world view.
+
+This page shows FX Client only. There is no Iterable view, and no WhatsApp yet.
 
 ## A note on estimates
 
@@ -102,7 +124,7 @@ Sheet structure:
 
 `Product type | Channel | Event that triggers the message send | Message template title | Message | Subject | Language | Send system | Message recipient | From address | Format type | Service | Payment method | Country to | B&M email message incl. HTML | MessageID | Event ID | Agent Company | Intent | Live`
 
-**Not sheet-fed:** every cost page. Country rates, order volumes, participation rates, Iterable contract figures and the Global Agent country list are hardcoded in `index.html`. Changing any of them means a code edit and a new push.
+**Not sheet-fed:** every cost page and the Activation map. Country rates, order volumes, participation rates, Iterable contract figures, the Global Agent country list and the list of events live in each market are hardcoded in `index.html`. Changing any of them means a code edit and a new push. When an event goes live in a market, the Activation map and the "live today" scope of the cost pages only change after that list is updated. The world map shapes are also embedded in the file, in simplified form.
 
 **Message links:** the sheet's `MessageID` column is blank on every row, so per-message share links are built from a mix of title, country, channel, event, recipient, agent and service. That is unique for almost every message. A small number of genuine duplicate rows share a link, which is harmless since they show identical content. Filling in `MessageID` would make this exact.
 
@@ -151,6 +173,8 @@ Needs Power BI tenant-admin rights, so likely IT or the data team rather than CX
 ## Known open items
 
 - **Three Flow Map elements are still hidden.** The Message Library column, the Who Gets It column and the route-count summary line were hidden for a presentation and never restored. They are marked with `TEMP: hidden for CEO presentation` comments in the CSS. Remove the `display:none` on each to bring them back.
+- **Activation map is SMS only.** The live events come from the same hardcoded list as the cost pages, which covers SMS. WhatsApp events are not shown as activated yet.
+- **Some markets have no estimate on the Activation map.** Colombia has live events but no order volume or Clickatell rate on file, so its panel shows no cost. French overseas territories with live events (French Guiana, Guadeloupe, Martinique, Mayotte, Reunion) are not drawn on the map.
 - **Xe has no Consumer and Corporate split.** The audience switch is disabled for Xe because the Xe pull is a single list. Splitting it would mean two separate pulls.
 - **The placeholder preview uses one tracking URL per language.** English messages get the `en-us` tracking page and Spanish ones get `es-us`, detected from the message text (CGD-6561, done). The real link carries a per-customer token, so the live message is longer than the preview shows.
 - **Ria PayID has no sample value**, because its format is unknown. It stays visible as a raw placeholder rather than being filled with something invented.
