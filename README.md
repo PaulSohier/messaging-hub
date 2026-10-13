@@ -1,4 +1,4 @@
-# Messaging Hub V5.9.0.0
+# Messaging Hub V5.9.2.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -44,24 +44,26 @@ Daily opt-in figures captured from the Opt-in Power BI dashboard, global or by c
 
 ### Costs
 
+The Costs menu has four main pages: SMS Costs, Full Opt-in Impact, Iterable Migration and FX Client Activations. Four older models sit in a collapsed group called **Older models** in the same menu (click the group title to open it). They are kept with all their code and data for future use, and their links still work. Iterable Migration and FX Client Activations both let you pick the carrier, markets and events, so they cover most of what the Twilio and Global deployment pages did.
+
 All cost pages carry a "Ria sending countries only" checkbox. Turned on, it removes the Global Agent markets, leaving the markets where Ria itself owns the messaging. The United States stays included either way, because an agent manages the sending tooling there but Ria still owns the customer communication.
 
-**SMS Cost Calculator**
+**SMS Costs**
 Country-level SMS cost projection based on 2025 order volumes and contracted Clickatell rates. Includes an opt-in scenario slider, using today's real opt-in rate of 64 percent as the baseline.
 
-**Twilio SMS Calculator**
+**Twilio SMS calculator** (Older models)
 The same model using Twilio's contracted rates (Order Form 00142240.0, effective Aug 1, 2025). Covers only the 57 countries priced in that contract. US and Canada rates exclude an additional, unquantified carrier-fee surcharge. 11 priced countries have no order-volume data on file and need manual entry.
 
-**Global Deployment Cost** and **Global Deployment Twilio**
+**Global deployment cost** and **Global deployment Twilio** (Older models)
 Executive views of projected spend across all markets, sortable and filterable by region or country. The Twilio version covers the 46 markets that are both Twilio-priced and have order data.
 
-**Full opt-in cost impact**
+**Full Opt-in Impact**
 Answers one question: what would SMS cost if every customer opted in. It builds an average messages-per-order figure from the real 2025 US event rates, each weighted by how often it fires and by its real SMS segment count, then scales that from today's opt-in rate up to 100 percent. Headline figures and charts sit at the top, with the full editable event table collapsed underneath. Entered values are saved in the browser.
 
-**Opt-in cost impact (by journey)**
+**Opt-in cost impact (by journey)** (Older models)
 The same question modelled a different way, grouped by delivery path rather than by individual event. Cash pickup counts as one journey sending two messages, for example. Kept alongside the event version rather than replacing it, so the two approaches can be compared.
 
-**Iterable migration simulator**
+**Iterable Migration**
 Shows how much B&M SMS would cost per year in the markets and for the events you choose. The headline reads like "Sending X in these markets costs about $X per year in SMS". Below it, a table gives the SMS per year and the cost per year for each market.
 
 The Iterable contract is already paid, so the page shows no platform, contract, allowance or overage cost. Only the SMS cost is modelled, because that is paid to a carrier and changes with the market.
@@ -70,7 +72,7 @@ Controls cover which markets to include (multi-select, so a phased plan can be m
 
 A small Profiles box lets you check whether adding B&M customers would go above the 52,000,000 profile allowance of the Iterable contract (Quote Q-15068). A fee only appears when the total goes above the allowance. Left blank, no profile fee is shown.
 
-**FX Client scenario**
+**FX Client Activations**
 Answers a different question: what would it cost if we turn on more messages in FX Client, sending with Clickatell, with no Iterable at all. It is built to work like the simulator, but with a list.
 
 - Pick any markets and any events, then press "Add to list". You can add several times, so each market can have its own events.
