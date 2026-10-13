@@ -65,6 +65,10 @@ body.brand-xe{--orange:#1B57D6;--orange-bg:#E8EEFB;--orange-dim:#1846AD;--purple
 .sb-section{margin-bottom:20px;}
 .sb-section-label{font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.38);padding:0 10px 8px;display:flex;align-items:center;gap:7px;}
 .sb-section-label::before{content:'';width:9px;height:2px;background:rgba(255,255,255,.7);display:inline-block;border-radius:1px;}
+.sb-group-items{display:none;}
+.sb-group-items.open{display:block;}
+.sb-caret{font-size:10px;opacity:.7;}
+.sb-collapsible:hover{color:rgba(255,255,255,.7);}
 
 .nav-tab{padding:9px 12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.7);cursor:pointer;border-radius:8px;margin-bottom:2px;white-space:nowrap;display:flex;align-items:center;gap:9px;user-select:none;border-left:3px solid transparent;transition:background .15s,color .15s;}
 .nav-tab:hover{background:rgba(255,255,255,.07);color:#fff;}
@@ -356,6 +360,7 @@ mark{background:#FCE68A;color:inherit;border-radius:2px;padding:0 1px;}
   .sb-nav{display:flex;flex-direction:row;align-items:center;gap:6px;padding:8px 12px;overflow-x:auto;}
   .sb-section{display:flex;align-items:center;gap:6px;margin-bottom:0;}
   .sb-section-label{display:none;}
+  .sb-group-items{display:contents;}
   .nav-tab{margin-bottom:0;border-left:none;border-bottom:3px solid transparent;}
   .nav-tab.active{border-left:none;border-bottom-color:#fff;}
   .sb-footer{display:none;}
@@ -523,7 +528,7 @@ mark{background:#FCE68A;color:inherit;border-radius:2px;padding:0 1px;}
   <span class="search-count" id="p2-search-count"></span>
 </div>
 <div id="p2-content"></div></div>
-<div class="page" id="p3"><div class="page-title">SMS cost calculator <span class="page-note">Projected spend by event type — fill in total orders and per-SMS cost to calculate</span></div><div id="p3-content"></div></div>
+<div class="page" id="p3"><div class="page-title">SMS Costs <span class="page-note">Projected spend by event type — fill in total orders and per-SMS cost to calculate</span></div><div id="p3-content"></div></div>
 <div class="page" id="p5"><div class="page-title">Twilio SMS calculator <span class="page-note">Same model, Twilio rate card — covers the 57 countries in the current Twilio contract</span></div><div id="p5-content"></div></div>
 <div class="page" id="p4"><div class="page-title">Global deployment cost <span class="page-note">Projected annual SMS cost of deploying US notification coverage to all active markets</span></div><div id="p4-content"></div></div>
 <div class="page" id="p6"><div class="page-title">Global deployment Twilio <span class="page-note">Same view, Twilio rate card — 46 markets with both a contracted Twilio rate and order-volume data</span></div><div id="p6-content"></div></div>
@@ -572,10 +577,10 @@ mark{background:#FCE68A;color:inherit;border-radius:2px;padding:0 1px;}
 </div>
 
 <div class="page" id="p8"><div class="page-title">Opt-in rates <span class="page-note" id="p8-page-note">Daily-captured from the Opt-in PowerBI dashboard — global or single country</span></div><div id="p8-content"></div></div>
-<div class="page" id="p9"><div class="page-title">Full opt-in cost impact <span class="page-note">2025 actual SMS cost vs. expected cost if every customer opted in</span></div><div id="p9-content"></div></div>
+<div class="page" id="p9"><div class="page-title">Full Opt-in Impact <span class="page-note">2025 actual SMS cost vs. expected cost if every customer opted in</span></div><div id="p9-content"></div></div>
 <div class="page" id="p10"><div class="page-title">Opt-in cost impact (by journey) <span class="page-note">Same question, modeled by delivery-path journey instead of flat events</span></div><div id="p10-content"></div></div>
-<div class="page" id="p11"><div class="page-title">Iterable migration simulator <span class="page-note">How much B&amp;M SMS would cost per year, by market and by message</span></div><div id="p11-content"></div></div>
-<div class="page" id="p12"><div class="page-title">FX Client scenario <span class="page-note">Extra SMS cost per year if we turn on more messages in FX Client with Clickatell</span></div><div id="p12-content"></div></div>
+<div class="page" id="p11"><div class="page-title">Iterable Migration <span class="page-note">How much B&amp;M SMS would cost per year, by market and by message</span></div><div id="p11-content"></div></div>
+<div class="page" id="p12"><div class="page-title">FX Client Activations <span class="page-note">Extra SMS cost per year if we turn on more messages in FX Client with Clickatell</span></div><div id="p12-content"></div></div>
 <div class="page" id="p13"><div class="page-title">SMS activation map <span class="page-note">B&amp;M, Ria: what is live in FX Client today</span></div><div id="p13-content"></div></div>
 
 </div><!-- /main-content -->
@@ -885,14 +890,18 @@ const NAV_CONFIG = {
 // under a specific audience. Same page ids as before; only the nav grouping moved.
 const TOOLS_NAV = [
   {section:'Cost Modeling', items:[
-    {id:'p3', icon:'', label:'SMS cost calculator'},
+    {id:'p3', icon:'', label:'SMS Costs'},
+    {id:'p9', icon:'', label:'Full Opt-in Impact'},
+    {id:'p11', icon:'', label:'Iterable Migration'},
+    {id:'p12', icon:'', label:'FX Client Activations'},
+  ]},
+  // Older models: kept in the Hub with all their code and data, only moved out of
+  // the main menu. Click the group title to open it.
+  {section:'Older models', collapsed:true, items:[
     {id:'p5', icon:'', label:'Twilio SMS calculator'},
     {id:'p4', icon:'', label:'Global deployment cost'},
     {id:'p6', icon:'', label:'Global deployment Twilio'},
-    {id:'p9', icon:'', label:'Full opt-in cost impact'},
     {id:'p10', icon:'', label:'Opt-in cost impact (by journey)'},
-    {id:'p11', icon:'', label:'Iterable migration simulator'},
-    {id:'p12', icon:'', label:'FX Client scenario'},
   ]},
   {section:'Methodology', items:[
     {id:'p7', icon:'', label:'How we calculate this'},
@@ -918,19 +927,37 @@ let hubMode = 'explore'; // 'explore', 'tools' or 'activation' — derived from 
 function renderNavSections(sections){
   const nav = document.getElementById('sb-nav');
   let html = '';
+  window._navOpen = window._navOpen || {};
   sections.forEach(function(sec){
-    html += '<div class="sb-section"><div class="sb-section-label">'+sec.section+'</div>';
+    if(sec.collapsed){
+      const hasActive = sec.items.some(function(i){ return i.id === activeTab; });
+      const open = !!window._navOpen[sec.section] || hasActive;
+      html += '<div class="sb-section"><div class="sb-section-label sb-collapsible" onclick="toggleNavGroup(this)" style="cursor:pointer;" data-group="'+sec.section+'">'
+        + sec.section+' <span class="sb-caret">'+(open ? '\u25BE' : '\u25B8')+'</span></div>'
+        + '<div class="sb-group-items'+(open ? ' open' : '')+'">';
+    } else {
+      html += '<div class="sb-section"><div class="sb-section-label">'+sec.section+'</div>';
+    }
     sec.items.forEach(function(item){
       html += '<div class="nav-tab" data-tab="'+item.id+'" onclick="switchTab(\''+item.id+'\',this)">'+item.label
         + (item.badge ? ' <span class="nbadge" id="'+item.badge+'"></span>' : '') + '</div>';
     });
-    html += '</div>';
+    html += sec.collapsed ? '</div></div>' : '</div>';
   });
   nav.innerHTML = html;
   const validIds = sections.flatMap(function(s){ return s.items.map(function(i){ return i.id; }); });
   if(validIds.indexOf(activeTab) === -1){
     activeTab = validIds[0] || 'p0';
   }
+}
+
+function toggleNavGroup(el){
+  const items = el.nextElementSibling;
+  const open = !items.classList.contains('open');
+  items.classList.toggle('open', open);
+  window._navOpen = window._navOpen || {};
+  window._navOpen[el.dataset.group] = open;
+  const caret = el.querySelector('.sb-caret'); if(caret) caret.textContent = open ? '\u25BE' : '\u25B8';
 }
 
 function renderSidebarNav(){
