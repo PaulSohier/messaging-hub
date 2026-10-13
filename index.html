@@ -396,6 +396,8 @@ mark{background:#FCE68A;color:inherit;border-radius:2px;padding:0 1px;}
 #act-map.drag{cursor:grabbing;}
 #act-map path{stroke:#fff;stroke-width:.6;vector-effect:non-scaling-stroke;fill:var(--act-none);transition:fill .25s;}
 #act-map path.has{cursor:pointer;}
+#act-map path,#act-map path:focus,#act-map:focus{outline:none;-webkit-tap-highlight-color:transparent;}
+#act-map path:focus-visible{outline:none;}
 #act-map path.has:hover{stroke:var(--act-ink);stroke-width:1.6;}
 #act-map path.sel{stroke:#e8541e;stroke-width:2.2;}
 .act-reset{position:absolute;left:12px;top:12px;background:#fff;border:1px solid var(--act-line);border-radius:8px;padding:6px 12px;font:inherit;font-size:12px;cursor:pointer;display:none;box-shadow:0 1px 3px rgba(0,0,0,.08);color:var(--act-ink);}
@@ -4609,6 +4611,8 @@ function renderActivation(){
   }
   function select(n){
     A.selected = n; A.filter = 'all';
+    tip.style.opacity = 0;
+    if(document.activeElement && document.activeElement.blur && svg.contains(document.activeElement)) document.activeElement.blur();
     zoomTo(n ? boxFor(n) : [0,0,960,500]);
     paint(); n ? renderCountry() : renderWorld();
     document.getElementById('act-side').scrollTop = 0;
