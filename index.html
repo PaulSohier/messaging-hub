@@ -4417,8 +4417,10 @@ function fxsFillToday(D, B){
   const th = 'padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);';
   const td = 'padding:7px 10px;font-size:12px;';
   const card = 'background:var(--card);border:1px solid var(--border);border-radius:var(--radius);';
-  box.innerHTML = '<div style="'+card+'padding:18px 22px;margin-bottom:20px;">'
-    + '<div style="font-size:15px;font-weight:700;margin-bottom:4px;">What we send today</div>'
+  box.innerHTML = '<details style="'+card+'padding:14px 22px;margin-bottom:20px;">'
+    + '<summary style="cursor:pointer;list-style:none;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;"><span style="font-size:15px;font-weight:700;">What we send today</span>'
+    + '<span style="font-size:13px;color:var(--muted);">Estimated '+money(total)+' per year'+(real ? ', '+Math.round(total/real*100)+'% of the real invoices' : '')+'. Click to see it by market.</span></summary>'
+    + '<div style="margin-top:12px;">'
     + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Real 2026 SMS per event from Ria BI ('+esc(OBS.period)+') for the 9 measured markets, yearly. Other markets use the European average for the events live in the Messages Library. Clickatell rates.</div>'
     + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;">'
     + '<div style="flex:1;min-width:190px;background:var(--bg);border-radius:8px;padding:12px 16px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);">Estimated SMS cost today</div><div style="font-size:22px;font-weight:700;">'+money(total)+'</div><div style="font-size:11px;color:var(--muted);">per year, '+num(totalSms)+' SMS segments</div></div>'
@@ -4434,7 +4436,7 @@ function fxsFillToday(D, B){
           + '<td style="'+td+'text-align:right;font-weight:600;">'+money(x.r.cost)+'</td></tr>';
       }).join('')
     + (rest.length ? '<tr style="border-top:1px solid var(--border);"><td style="'+td+'">'+rest.length+' other markets</td><td style="'+td+'color:var(--muted);">Estimate</td><td style="'+td+'text-align:right;">'+num(restSms)+'</td><td style="'+td+'"></td><td style="'+td+'text-align:right;font-weight:600;">'+money(restCost)+'</td></tr>' : '')
-    + '</tbody></table></div>';
+    + '</tbody></table></div></details>';
 }
 
 async function renderFxSpend(){
@@ -5043,7 +5045,7 @@ function renderActivation(){
     DATA[atlas] = {atlas:atlas, name:c, orders:orders, rate:D.CLICKATELL[c], live:new Set(live), isUS:c === 'United States'};
   });
 
-  const A = window._act = {selected:null, filter:'all', vb:[0,0,960,500], anim:0, drag:null, moved:false};
+  const A = window._act = {selected:null, filter:'live', vb:[0,0,960,500], anim:0, drag:null, moved:false};
   const fmt = function(n){ return n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? Math.round(n/1e3)+'k' : Math.round(n)+''; };
   const money = function(n){ return '$'+(n >= 1000 ? Math.round(n).toLocaleString('en-US') : n.toFixed(n < 10 ? 2 : 0)); };
   const value = function(d){ return Math.min(1, d.live.size / REF); };
@@ -5166,14 +5168,14 @@ function renderActivation(){
         ? '<div class="act-kpis">'
           + '<div class="act-kpi"><b>'+fmt(d.orders)+'</b><span>Orders per year'+(measured ? ' (2026)' : ' (2025)')+'</span></div>'
           + '<div class="act-kpi"><b>'+n+'</b><span>Events live</span></div>'
-          + '<div class="act-kpi"><b>'+fmt(sent)+'</b><span>SMS today / year'+(measured ? '' : ' (est.)')+'</span></div>'
-          + '<div class="act-kpi"><b>'+money(cost)+'</b><span>SMS cost today / year'+(measured ? '' : ' (est.)')+'</span></div></div>'
+          + '<div class="act-kpi"><b>'+fmt(sent)+'</b><span>SMS / year as of today'+(measured ? '' : ' (est.)')+'</span></div>'
+          + '<div class="act-kpi"><b>'+money(cost)+'</b><span>SMS cost / year as of today'+(measured ? '' : ' (est.)')+'</span></div></div>'
         : '<div class="act-callout">No order volume or Clickatell rate on file for this market, so no volume or cost estimate.</div>')
       + (hasCost && offRows.length
         ? '<div class="act-callout"><b>'+offRows.length+' events not at full coverage.</b> Turning them all on would add about <b>'+fmt(missVol)+'</b> SMS and <b>'+money(missCost)+'</b> per year on top of today (Clickatell rate $'+d.rate.toFixed(4)+' per SMS segment).</div>'
         : (!offRows.length ? '<div class="act-callout" style="background:#eaf7f0;border-color:#bfe3cf">All reference events are live in this market.</div>' : ''))
       + '<div class="act-chips" role="group" aria-label="Filter events">'
-      + [['all','All '+EV.length],['live','Live '+liveRows.length],['off','Not live '+offRows.length]].map(function(x){ return '<button class="act-chip '+(A.filter===x[0]?'on':'')+'" data-f="'+x[0]+'">'+x[1]+'</button>'; }).join('')
+      + [['live','Live '+liveRows.length],['off','Not live '+offRows.length]].map(function(x){ return '<button class="act-chip '+(A.filter===x[0]?'on':'')+'" data-f="'+x[0]+'">'+x[1]+'</button>'; }).join('')
       + '</div>'
       + '<div class="act-events">'+(shown.map(function(r){
           return '<div class="act-ev '+(r.on?'':'off')+'"><span class="nm">'+esc(r.e.name || r.e.n)+'</span>'
@@ -5185,7 +5187,7 @@ function renderActivation(){
     document.querySelectorAll('#act-side .act-chip').forEach(function(b){ b.onclick = function(){ A.filter = b.dataset.f; renderCountry(); }; });
   }
   function select(n){
-    A.selected = n; A.filter = 'all';
+    A.selected = n; A.filter = 'live';
     tip.style.opacity = 0;
     if(document.activeElement && document.activeElement.blur && svg.contains(document.activeElement)) document.activeElement.blur();
     zoomTo(n ? boxFor(n) : [0,0,960,500]);
