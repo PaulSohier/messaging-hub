@@ -387,6 +387,36 @@ mark{background:#FCE68A;color:inherit;border-radius:2px;padding:0 1px;}
   .jstep-node:hover .jstep-active,
   .jstep-active > div:first-child{border-width:3px!important;}
 
+/* ACTIVATION ROADMAP (page p14) */
+#p14{--rm-line:#e3e7ee;--rm-ink:#1b2430;}
+.rm-wrap{overflow-x:auto;padding-bottom:8px;}
+.rm-intro{background:var(--card);border:1px solid var(--rm-line);border-radius:10px;padding:10px 14px;font-size:12px;line-height:1.6;color:var(--muted);margin-bottom:14px;}
+.rm-legend{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 12px;font-size:12px;color:var(--muted);align-items:center;}
+.rm-legend span{display:inline-flex;align-items:center;gap:6px;}
+.rm-sw{width:14px;height:14px;border-radius:4px;display:inline-block;border:1.5px solid;}
+.rm-sw.planned{border-style:dashed;border-color:#B26A00;background:#FFF8E6;}
+.rm-sw.confirmed{border-color:#1B5FA0;background:#E9F1FA;}
+.rm-sw.live{border-color:var(--live);background:var(--live-bg);}
+.rm-grid{display:grid;min-width:980px;background:var(--card);border:1px solid var(--rm-line);border-radius:12px;overflow:hidden;}
+.rm-h{padding:12px 10px;text-align:center;border-bottom:2px solid var(--rm-ink);border-left:1px solid var(--rm-line);background:var(--card);}
+.rm-h:first-child{border-left:0;}
+.rm-h b{display:block;font-size:14px;color:var(--rm-ink);}
+.rm-h span{font-size:11px;color:var(--muted);}
+.rm-rowlabel{padding:14px 12px;border-top:1px solid var(--rm-line);border-left:5px solid var(--c);background:var(--card);}
+.rm-rowlabel b{display:block;font-size:14px;color:var(--rm-ink);}
+.rm-rowlabel span{font-size:11px;color:var(--muted);}
+.rm-cell{padding:8px;border-top:1px solid var(--rm-line);border-left:1px solid var(--rm-line);min-height:96px;display:flex;flex-direction:column;gap:8px;background:var(--bgc);}
+.rm-box{border:1.5px solid;border-radius:8px;padding:9px 10px;font-size:12px;line-height:1.45;color:var(--rm-ink);}
+.rm-box.planned{border-style:dashed;border-color:#B26A00;background:#FFF8E6;}
+.rm-box.confirmed{border-color:#1B5FA0;background:#E9F1FA;}
+.rm-box.live{border-color:var(--live);background:var(--live-bg);}
+.rm-box .ev{font-weight:600;display:block;}
+.rm-box .ev + .ev{margin-top:5px;}
+.rm-box .mk{display:block;color:var(--muted);margin-top:4px;font-size:11px;}
+.rm-box .st{display:inline-block;margin-top:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.rm-box.planned .st{color:#B26A00;} .rm-box.confirmed .st{color:#1B5FA0;} .rm-box.live .st{color:var(--live);}
+.rm-note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6;}
+
 /* ACTIVATION MAP (page p13) */
 #hub-mode-toggle .brand-toggle-thumb{width:calc(33.333% - 2px);}
 .brand-toggle.activation-active .brand-toggle-thumb{transform:translateX(200%);}
@@ -582,6 +612,7 @@ mark{background:#FCE68A;color:inherit;border-radius:2px;padding:0 1px;}
 <div class="page" id="p11"><div class="page-title">Iterable Migration <span class="page-note">How much B&amp;M SMS would cost per year, by market and by message</span></div><div id="p11-content"></div></div>
 <div class="page" id="p12"><div class="page-title">FX Client Activations <span class="page-note">Extra SMS cost per year if we turn on more messages in FX Client with Clickatell</span></div><div id="p12-content"></div></div>
 <div class="page" id="p13"><div class="page-title">SMS activation map <span class="page-note">B&amp;M, Ria: what is live in FX Client today</span></div><div id="p13-content"></div></div>
+<div class="page" id="p14"><div class="page-title">Activation roadmap <span class="page-note">B&amp;M, Ria: which events go live, in which markets, each week</span></div><div id="p14-content"></div></div>
 
 </div><!-- /main-content -->
 </div><!-- /app-shell -->
@@ -919,9 +950,10 @@ const TOOLS_PAGE_IDS = TOOLS_NAV.flatMap(function(s){ return s.items.map(functio
 const ACTIVATION_NAV = [
   {section:'Activation', items:[
     {id:'p13', icon:'', label:'SMS activation map'},
+    {id:'p14', icon:'', label:'Activation roadmap'},
   ]},
 ];
-const ACTIVATION_PAGE_IDS = ['p13'];
+const ACTIVATION_PAGE_IDS = ['p13','p14'];
 let hubMode = 'explore'; // 'explore', 'tools' or 'activation' — derived from the deep-linked tab at init, see INIT block
 
 function renderNavSections(sections){
@@ -1136,6 +1168,50 @@ function renderPage(id){
   if(id==='p11') renderIterableMigration();
   if(id==='p12') renderFxScenario();
   if(id==='p13') renderActivation();
+  if(id==='p14') renderActivationRoadmap();
+}
+
+/* ── ACTIVATION ROADMAP (B&M, Ria, FX Client) ──
+   Reads data/activation-roadmap.json at run time: edit that file on GitHub to move a
+   box, add a week or change a status (planned, confirmed, live). No code change needed. */
+async function renderActivationRoadmap(){
+  const box = document.getElementById('p14-content');
+  box.innerHTML = '<div style="padding:60px;text-align:center;color:var(--muted);font-size:13px;">Loading roadmap…</div>';
+  let data;
+  try{
+    const res = await fetch('data/activation-roadmap.json');
+    if(!res.ok) throw new Error('fetch failed: '+res.status);
+    data = await res.json();
+  } catch(e){
+    box.innerHTML = '<div class="empty-intent"><div class="empty-intent-title">Could not load the roadmap</div>'
+      + '<div class="empty-intent-sub">Check that data/activation-roadmap.json exists on this branch.</div></div>';
+    return;
+  }
+  const esc = function(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  const weeks = data.weeks || [], rows = data.rows || [], items = data.items || [];
+  const STATUS = {planned:'Planned', confirmed:'Confirmed', live:'Live'};
+  let h = '<div class="rm-intro"><b>Activation roadmap.</b> '+esc(data.subtitle || '')+' Each week we decide which events to turn on and in which markets. Weeks without a box are still open.</div>'
+    + '<div class="rm-legend"><span><i class="rm-sw planned"></i>Planned</span><span><i class="rm-sw confirmed"></i>Confirmed</span><span><i class="rm-sw live"></i>Live</span></div>'
+    + '<div class="rm-wrap"><div class="rm-grid" style="grid-template-columns:170px repeat('+weeks.length+',minmax(170px,1fr));">';
+  h += '<div class="rm-h"></div>';
+  weeks.forEach(function(w){ h += '<div class="rm-h"><b>'+esc(w.label)+'</b><span>'+esc(w.date)+'</span></div>'; });
+  rows.forEach(function(r){
+    h += '<div class="rm-rowlabel" style="--c:'+esc(r.color || '#999')+';"><b>'+esc(r.label)+'</b><span>'+esc(r.sub || '')+'</span></div>';
+    weeks.forEach(function(w, wi){
+      const cell = items.filter(function(it){ return it.row === r.id && it.week === wi + 1; });
+      h += '<div class="rm-cell" style="--bgc:'+(cell.length ? '#fff' : '#fafbfc')+';">'
+        + cell.map(function(it){
+            const st = STATUS[it.status] ? it.status : 'planned';
+            return '<div class="rm-box '+st+'">'
+              + (it.events || []).map(function(e){ return '<span class="ev">'+esc(e)+'</span>'; }).join('')
+              + (it.markets ? '<span class="mk">'+esc(it.markets)+'</span>' : '')
+              + '<span class="st">'+STATUS[st]+(it.ticket ? ' · '+esc(it.ticket) : '')+'</span></div>';
+          }).join('')
+        + '</div>';
+    });
+  });
+  h += '</div></div><div class="rm-note">To change the roadmap, edit <code>data/activation-roadmap.json</code> on GitHub. A box has a week, a row, a list of events, the markets and a status.</div>';
+  box.innerHTML = h;
 }
 
 /* ── GLOBAL DEPLOYMENT COST ── */
