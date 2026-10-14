@@ -1,4 +1,4 @@
-# Messaging Hub V5.13.1.0
+# Messaging Hub V5.13.2.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -83,6 +83,9 @@ Answers a different question: what would it cost if we turn on more messages in 
 - Opt-in scenario works like the other pages (today's rate or full opt-in).
 - "Export picture (PNG)" builds an image with the totals and one row per market (events turned on, share bar, SMS per year, cost per year), with a preview and a download. "Export CSV" gives one line per market and event.
 - The list is saved in the browser.
+
+**Filters in the Google Sheet** (since V5.13.2.0)
+A filter applied directly on the Messages Library sheet (Data > Create a filter) hides rows from the Hub too, so the Message Library, the flow map and the cost pages can lose messages. Two rules avoid this. First, people should use their own filter view (Data > Filter views > Create new filter view), which only changes what they see. Second, the Hub reads two mirror tabs first, `Hub feed B&M` and `Hub feed Digital`. Each mirror tab has one formula in cell A1: `='B&M'!A1:T` for the first one and `='Digital'!A1:T` for the second one. A formula always returns every row, whatever filter is on the original tab. If a mirror tab does not exist or is empty, the Hub reads the original tab as before. Nobody should type in the mirror tabs.
 
 **Spend with the weekly activations** (since V5.13.0.0)
 At the top of the FX Client Activations page. It starts from what we really pay Clickatell for SMS, and adds each activation week from the Activation roadmap. It shows four numbers: the real yearly baseline, what the planned weeks add per year, the yearly run rate after all weeks, and the expected SMS spend in the current calendar year (each week counted only from its go-live date). A table lists each week with its extra cost per year, its extra cost in the year, and the run rate after it. A week with events but no markets yet is listed as not costed.
