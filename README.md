@@ -52,7 +52,7 @@ All cost pages carry a "Ria sending countries only" checkbox. Turned on, it remo
 Country-level SMS cost projection based on 2025 order volumes and contracted Clickatell rates. Includes an opt-in scenario slider, using today's real opt-in rate of 64 percent as the baseline.
 
 **Twilio SMS calculator** (Older models)
-The same model using Twilio's contracted rates (Order Form 00142240.0, effective Aug 1, 2025). Covers only the 57 countries priced in that contract. US and Canada rates exclude an additional, unquantified carrier-fee surcharge. 11 priced countries have no order-volume data on file and need manual entry.
+The same model using Twilio's contracted rates (contract rate schedule, effective Aug 1, 2025). Covers only the 57 countries priced in that contract. US and Canada rates exclude an additional, unquantified carrier-fee surcharge. 11 priced countries have no order-volume data on file and need manual entry.
 
 **Global deployment cost** and **Global deployment Twilio** (Older models)
 Executive views of projected spend across all markets, sortable and filterable by region or country. The Twilio version covers the 46 markets that are both Twilio-priced and have order data.
@@ -70,7 +70,7 @@ The Iterable contract is already paid, so the page shows no platform, contract, 
 
 Controls cover which markets to include (multi-select, so a phased plan can be modelled), Clickatell or Twilio as the carrier, today's opt-in rate or full opt-in, and which events are in scope. The event scope defaults to what is actually live in each market today, since the US runs 25 live SMS events while most other markets run only one to four. Switching to a custom event set shows how much activating new events would add. When the chosen events cost more than what is live today, the headline adds "That is $X more than today".
 
-A small Profiles box lets you check whether adding B&M customers would go above the 52,000,000 profile allowance of the Iterable contract (Quote Q-15068). A fee only appears when the total goes above the allowance. Left blank, no profile fee is shown.
+A small Profiles box lets you check whether adding B&M customers would go above the 52,000,000 profile allowance of the Iterable contract (current contract). A fee only appears when the total goes above the allowance. Left blank, no profile fee is shown.
 
 **FX Client Activations**
 Answers a different question: what would it cost if we turn on more messages in FX Client, sending with Clickatell, with no Iterable at all. It is built to work like the simulator, but with a list.
@@ -114,12 +114,12 @@ The United States is the only market with real behavioural telemetry. Event part
 - Xe messaging: Xe Digital Iterable Production
 - Order volumes: Power BI, all B&M markets, 2025
 - SMS costs (Clickatell): current contracted telco rates
-- SMS costs (Twilio): Twilio Order Form 00142240.0, Exhibit A, effective Aug 1, 2025
+- SMS costs (Twilio): Twilio contract rate schedule, effective Aug 1, 2025
 - Clickatell billing: 2025 invoices
 - Opt-in data: current rate of 64 percent
 - Activation roadmap: `data/activation-roadmap.json`, edited by hand
 - Global Agent markets: Global Agents file, used for the Ria sending countries filter
-- Iterable contract: Quote Q-15068, Mar 2026 to Mar 2027 renewal
+- Iterable contract: current quote, Mar 2026 to Mar 2027 renewal
 
 ## Live data connection
 
