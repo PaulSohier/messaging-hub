@@ -1,0 +1,84 @@
+{
+  "source": "Clickatell invoices (Clickatell Payments-2025.xlsx). Usage months Dec 2024 to Nov 2025, invoices posted Jan to Dec 2025. Update this file when a new invoiced year is available.",
+  "usagePeriod": "Dec 2024 to Nov 2025",
+  "smsYearly": 1019396.73,
+  "smsLines": [
+    {
+      "label": "SMS Messages USA / ROW",
+      "amount": 822279.89
+    },
+    {
+      "label": "MT Messages FTEU / MO",
+      "amount": 197116.84
+    }
+  ],
+  "notInSmsBaseline": [
+    {
+      "label": "WhatsApp Starter License",
+      "amount": 33585.11,
+      "note": "No invoice yet for Oct and Nov 2025 in this file"
+    },
+    {
+      "label": "Additional Billing Commit (Jun 2025)",
+      "amount": 154403.81,
+      "note": "Looks like a minimum commit payment. To be confirmed with the contract."
+    }
+  ],
+  "totalPaid": 1207385.65,
+  "monthlySms": [
+    {
+      "month": "Dec/24",
+      "amount": 86137.49
+    },
+    {
+      "month": "Jan/25",
+      "amount": 72058.38
+    },
+    {
+      "month": "Feb/25",
+      "amount": 71266.18
+    },
+    {
+      "month": "Mar/25",
+      "amount": 85500.01
+    },
+    {
+      "month": "Apr/25",
+      "amount": 79166.08
+    },
+    {
+      "month": "May/25",
+      "amount": 103689.54
+    },
+    {
+      "month": "Jun/25",
+      "amount": 81142.35
+    },
+    {
+      "month": "Jul/25",
+      "amount": 88052.51
+    },
+    {
+      "month": "Aug/25",
+      "amount": 89915.2
+    },
+    {
+      "month": "Sep/25",
+      "amount": 88762.5
+    },
+    {
+      "month": "Oct/25",
+      "amount": 90168.25
+    },
+    {
+      "month": "Nov/25",
+      "amount": 83538.24
+    }
+  ],
+  "calibration": {
+    "date": "2026-10-14",
+    "modelLiveBaseline": 3227668,
+    "modelLiveBaselineUS": 560793,
+    "note": "Hub model cost of the events live on 14 Oct 2026 (all markets, and United States alone). Frozen on purpose, so activating more events does not move the factors. Upper factor = real SMS baseline / model baseline. Lower factor = (real - model US) / (model baseline - model US), which assumes the US part of the model is right."
+  }
+}
