@@ -4340,7 +4340,7 @@ async function renderFxSpend(){
   };
 
   let cumLow = 0, cumHigh = 0, sumLow = 0, sumHigh = 0, y26Low = 0, y26High = 0, liveLow = 0, liveHigh = 0;
-  const warn = [];
+  const warn = [], outRows = [];
   const trs = (R.weeks||[]).map(function(w, wi){
     const items = (R.items||[]).filter(function(it){ return it.week === wi+1; });
     let raw = 0, evs = {}, mks = {}, status = null, uncosted = false, allEv = {};
@@ -4362,9 +4362,11 @@ async function renderFxSpend(){
     const sts = items.map(function(it){ return it.status; });
     status = sts.length && sts.every(function(x){ return x === 'live'; }) ? 'live' : (sts.indexOf('confirmed') !== -1 || sts.indexOf('live') !== -1 ? 'confirmed' : 'planned');
     if(!items.length || (raw === 0 && !uncosted)){
+      outRows.push({label:w.label, date:w.date, status:'', what:(items.length ? 'Nothing to cost' : 'Not decided yet'), note:''});
       return '<tr><td><b>'+esc2(w.label)+'</b></td><td>'+esc2(w.date)+'</td><td colspan="5" style="color:var(--muted);">'+(items.length ? 'Nothing to cost' : 'Not decided yet')+'</td></tr>';
     }
     if(raw === 0){
+      outRows.push({label:w.label, date:w.date, status:status, what:Object.keys(allEv).join(', ')+' (markets still to be defined)', note:'Not costed yet'});
       const pc = {planned:'#B26A00', confirmed:'#1B5FA0', live:'var(--live)'}[status] || '#B26A00';
       return '<tr><td><b>'+esc2(w.label)+'</b></td><td>'+esc2(w.date)+'</td>'
         + '<td><span style="color:'+pc+';font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.05em;">'+esc2(status)+'</span></td>'
@@ -4378,6 +4380,7 @@ async function renderFxSpend(){
     }
     const st = status || 'planned';
     const what = Object.keys(evs).join(', ') + (Object.keys(mks).length ? ' in '+Object.keys(mks).join(', ') : '') + (uncosted ? ' (some markets still to be defined)' : '');
+    outRows.push({label:w.label, date:w.date, status:st, what:what, lo:lo, hi:hi, y26lo:lo*sh, y26hi:hi*sh, runLo:B.smsYearly+cumLow, runHi:B.smsYearly+cumHigh});
     const pill = {planned:'#B26A00', confirmed:'#1B5FA0', live:'var(--live)'}[st] || '#B26A00';
     return '<tr><td><b>'+esc2(w.label)+'</b></td><td>'+esc2(w.date)+'</td>'
       + '<td><span style="color:'+pill+';font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.05em;">'+esc2(st)+'</span></td>'
@@ -4395,8 +4398,12 @@ async function renderFxSpend(){
   const warnHtml = warn.length ? '<div style="font-size:12px;color:#B26A00;margin-top:10px;line-height:1.6;">'+Array.from(new Set(warn)).map(esc2).join('<br>')+'</div>' : '';
   const notIn = (B.notInSmsBaseline||[]).map(function(x){ return esc2(x.label)+' '+money(x.amount); }).join(' and ');
 
+  window._fxSpendData = {B:B, year:year, rows:outRows, sumLow:sumLow, sumHigh:sumHigh, y26Low:y26Low, y26High:y26High, fLow:fLow, fHigh:fHigh};
   box.innerHTML = '<div style="margin-bottom:24px;">'
-    + '<div style="font-size:15px;font-weight:700;margin-bottom:4px;">Spend with the weekly activations</div>'
+    + '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;"><div style="font-size:15px;font-weight:700;">Spend with the weekly activations</div>'
+    + '<button onclick="fxSpendExportPng()" class="intent-pill" style="border:none;background:var(--purple);color:#fff;">Export picture (PNG)</button>'
+    + '<button onclick="fxSpendExportCsv()" class="intent-pill" style="border:none;">Export CSV</button></div>'
+    + '<div id="fxspend-preview" style="margin:10px 0;display:none;"></div>'
     + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">What we really pay for SMS with Clickatell, plus what each activation week adds. Weeks come from the Activation roadmap. Figures after the baseline are estimates, shown as a range.</div>'
     + '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;">'
     + kpi('Real baseline per year', money(B.smsYearly), 'Clickatell SMS invoices, usage '+esc2(B.usagePeriod)+'.')
@@ -4415,6 +4422,108 @@ async function renderFxSpend(){
     + 'The invoices are not split by country, so two limits are used: x'+fHigh.toFixed(2)+' if the model is wrong by the same amount everywhere, and x'+fLow.toFixed(2)+' if the US part of the model is right and the difference is in the other markets. '
     + 'The range will narrow when Clickatell gives a usage report by country.</div></details>'
     + '</div>';
+}
+
+
+/* ── Export of the spend table (weekly report) ── */
+function fxSpendBuildCanvas(){
+  const X = window._fxSpendData; if(!X) return null;
+  const money = function(n){ return '$'+Math.round(n).toLocaleString('en-US'); };
+  const range = function(a,b){ return Math.round(a) === Math.round(b) ? money(a) : money(a)+' to '+money(b); };
+  const B = X.B;
+  const css = getComputedStyle(document.documentElement);
+  const accent = (css.getPropertyValue('--purple') || '').trim() || '#FF6100';
+  const W = 1300, PAD = 40, SC = 2, LH = 18;
+  const font = function(w, s){ return w+' '+s+'px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif'; };
+  const tmp = document.createElement('canvas').getContext('2d'); tmp.font = font('400', 12);
+  function wrap(text, maxW){
+    const words = String(text).split(' '), lines = []; let cur = '';
+    words.forEach(function(w){ const t = cur ? cur+' '+w : w; if(tmp.measureText(t).width > maxW && cur){ lines.push(cur); cur = w; } else cur = t; });
+    if(cur) lines.push(cur); return lines;
+  }
+  const whatW = 400;
+  const layout = X.rows.map(function(r){ const lines = wrap(r.what, whatW); return {r:r, lines:lines, h:Math.max(40, lines.length*LH+20)}; });
+  const headH = 190, tableHead = 34, footH = 100;
+  const H = headH + tableHead + layout.reduce(function(a,l){ return a+l.h; },0) + footH + 40;
+  const cv = document.createElement('canvas'); cv.width = W*SC; cv.height = H*SC;
+  const g = cv.getContext('2d'); g.scale(SC,SC);
+  g.fillStyle = '#FFFFFF'; g.fillRect(0,0,W,H); g.fillStyle = accent; g.fillRect(0,0,W,8);
+  g.fillStyle = '#1A1A1A'; g.font = font('700', 26); g.textBaseline = 'alphabetic';
+  g.fillText('FX Client weekly activations: SMS spend', PAD, 55);
+  g.fillStyle = '#6B6B6B'; g.font = font('400', 13);
+  g.fillText('Ria B&M, SMS sent with Clickatell · baseline is the real invoices · '+new Date().toISOString().slice(0,10), PAD, 78);
+  const boxes = [
+    {t:'REAL BASELINE PER YEAR', v:money(B.smsYearly), n:'Usage '+B.usagePeriod},
+    {t:'ADDED BY THE PLANNED WEEKS', v:range(X.sumLow,X.sumHigh), n:'Per year'},
+    {t:'RUN RATE AFTER ALL WEEKS', v:range(B.smsYearly+X.sumLow,B.smsYearly+X.sumHigh), n:'Per year'},
+    {t:'EXPECTED SMS SPEND IN '+X.year, v:range(B.smsYearly+X.y26Low,B.smsYearly+X.y26High), n:'Weeks counted from go-live'}
+  ];
+  const bw = (W-2*PAD-3*16)/4;
+  boxes.forEach(function(b,k){
+    const x = PAD + k*(bw+16), y = 98;
+    g.fillStyle = k===3 ? accent : '#F5F5F5'; g.fillRect(x,y,bw,78);
+    g.fillStyle = k===3 ? '#FFFFFF' : '#6B6B6B'; g.font = font('700', 10); g.fillText(b.t, x+14, y+22);
+    g.fillStyle = k===3 ? '#FFFFFF' : '#1A1A1A'; g.font = font('700', b.v.length > 22 ? 17 : 22); g.fillText(b.v, x+14, y+50);
+    g.fillStyle = k===3 ? '#FFFFFF' : '#6B6B6B'; g.font = font('400', 10); g.fillText(b.n, x+14, y+67);
+  });
+  let y = headH;
+  g.font = font('700', 10); g.fillStyle = '#6B6B6B';
+  g.fillText('WEEK', PAD, y+20); g.fillText('GO-LIVE', PAD+80, y+20); g.fillText('STATUS', PAD+230, y+20); g.fillText('WHAT', PAD+320, y+20);
+  g.textAlign = 'right'; g.fillText('EXTRA PER YEAR', 920, y+20); g.fillText('EXTRA IN '+X.year, 1090, y+20); g.fillText('RUN RATE AFTER THIS WEEK', W-PAD, y+20); g.textAlign = 'left';
+  y += tableHead; g.strokeStyle = '#DDDDDD'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(PAD, y-6); g.lineTo(W-PAD, y-6); g.stroke();
+  const colr = {planned:'#B26A00', confirmed:'#1B5FA0', live:'#0F7A5C'};
+  layout.forEach(function(l){
+    const r = l.r;
+    g.fillStyle = '#1A1A1A'; g.font = font('700', 13); g.fillText(r.label, PAD, y+20);
+    g.font = font('400', 12); g.fillText(r.date.replace(/^[A-Za-z]+ /,''), PAD+80, y+20);
+    if(r.status){ g.fillStyle = colr[r.status] || '#B26A00'; g.font = font('700', 10); g.fillText(r.status.toUpperCase(), PAD+230, y+20); }
+    g.fillStyle = r.lo === undefined ? '#6B6B6B' : '#333333'; g.font = font('400', 12);
+    l.lines.forEach(function(t,k){ g.fillText(t, PAD+320, y+20+k*LH); });
+    g.textAlign = 'right';
+    if(r.lo !== undefined){
+      g.fillStyle = '#1A1A1A'; g.font = font('400', 12);
+      g.fillText(range(r.lo,r.hi), 920, y+20); g.fillText(range(r.y26lo,r.y26hi), 1090, y+20);
+      g.font = font('700', 12); g.fillText(range(r.runLo,r.runHi), W-PAD, y+20);
+    } else if(r.note){ g.fillStyle = '#6B6B6B'; g.font = font('400', 12); g.fillText(r.note, 920, y+20); }
+    g.textAlign = 'left'; y += l.h;
+    g.beginPath(); g.moveTo(PAD, y-6); g.lineTo(W-PAD, y-6); g.stroke();
+  });
+  g.fillStyle = '#6B6B6B'; g.font = font('400', 11);
+  const foot = [
+    'Baseline: real Clickatell SMS invoices, usage '+B.usagePeriod+' (WhatsApp licence and commit payment not included). It is also used for '+X.year+'.',
+    'Each week is an estimate, shown as a range: the Hub model scaled to the real invoices (x'+X.fLow.toFixed(2)+' to x'+X.fHigh.toFixed(2)+'). The invoices are not split by country.',
+    'Weeks with no markets yet are not costed. This view does not include any Iterable cost.'
+  ];
+  foot.forEach(function(t,k){ g.fillText(t, PAD, y+26+k*16); });
+  g.fillStyle = '#AAAAAA'; g.fillText('Ria B&M Messaging Hub', PAD, y+26+3*16+6);
+  return cv;
+}
+function fxSpendExportPng(){
+  const cv = fxSpendBuildCanvas(); if(!cv) return;
+  const url = cv.toDataURL('image/png');
+  const box = document.getElementById('fxspend-preview');
+  box.style.display = 'block';
+  box.innerHTML = '<div style="display:flex;gap:12px;align-items:center;margin-bottom:8px;">'
+    + '<a href="'+url+'" download="fx-client-weekly-spend.png" class="intent-pill" style="border:none;text-decoration:none;background:var(--purple);color:#fff;">Download PNG</a>'
+    + '<span style="font-size:11px;color:var(--muted);">Preview of the picture</span></div>'
+    + '<img src="'+url+'" style="max-width:100%;border:1px solid var(--border);border-radius:8px;">';
+  const a = document.createElement('a'); a.href = url; a.download = 'fx-client-weekly-spend.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function fxSpendExportCsv(){
+  const X = window._fxSpendData; if(!X) return;
+  const q = function(s){ return '"'+String(s).replace(/"/g,'""')+'"'; };
+  const n = function(v){ return v === undefined ? '' : Math.round(v); };
+  const lines = ['Week,Go-live,Status,What,Extra per year low (USD),Extra per year high (USD),Extra in '+X.year+' low (USD),Extra in '+X.year+' high (USD),Run rate after this week low (USD),Run rate after this week high (USD)'];
+  lines.push([q('Baseline'), q('Clickatell invoices'), q('real'), q('SMS usage '+X.B.usagePeriod), '', '', '', '', n(X.B.smsYearly), n(X.B.smsYearly)].join(','));
+  X.rows.forEach(function(r){
+    lines.push([q(r.label), q(r.date), q(r.status), q(r.what), n(r.lo), n(r.hi), n(r.y26lo), n(r.y26hi), n(r.runLo), n(r.runHi)].join(','));
+  });
+  lines.push([q('Total'), '', '', q('Expected SMS spend in '+X.year+' (baseline plus weeks from go-live)'), n(X.sumLow), n(X.sumHigh), n(X.y26Low), n(X.y26High), n(X.B.smsYearly+X.sumLow), n(X.B.smsYearly+X.sumHigh)].join(','));
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'fx-client-weekly-spend.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
 function renderFxScenario(){
