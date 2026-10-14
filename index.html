@@ -3312,6 +3312,19 @@ function libStatusHtml(){
   return h+'</div>';
 }
 
+/* A filter applied on the Google Sheet hides rows from this fetch too. To avoid that, the Hub first reads a
+   mirror tab ("Hub feed B&M", "Hub feed Digital"). A mirror tab is made of one formula (see README), and a
+   formula always returns every row, whatever filter someone has applied. If the mirror tab is missing or
+   empty, the Hub reads the original tab as before. */
+async function fetchSheetFeed(feedTab, originalTab) {
+  const rows = await fetchSheetTab(feedTab);
+  if(rows.length && rows.some(function(r){ return (r['Channel'] || '').trim(); })){
+    window._sheetFeedUsed = (window._sheetFeedUsed || []).concat(feedTab);
+    return rows;
+  }
+  return fetchSheetTab(originalTab);
+}
+
 async function fetchSheetTab(tabName) {
   // Server-side filter: only rows where column T (Live) = 'Yes' come back over the wire.
   // Cuts the B&M+Digital payload from 2,012 rows to ~1,162 — same set the dashboard already
@@ -5098,8 +5111,8 @@ async function loadSheetData() {
   if(indicator) indicator.textContent = '⟳ Syncing...';
 
   const [bmRows, digitalRows] = await Promise.all([
-    fetchSheetTab('B&M'),
-    fetchSheetTab('Digital'),
+    fetchSheetFeed('Hub feed B&M', 'B&M'),
+    fetchSheetFeed('Hub feed Digital', 'Digital'),
   ]);
 
   let added = 0;
