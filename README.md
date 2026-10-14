@@ -1,4 +1,4 @@
-# Messaging Hub V5.12.0.0
+# Messaging Hub V5.13.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -84,6 +84,15 @@ Answers a different question: what would it cost if we turn on more messages in 
 - "Export picture (PNG)" builds an image with the totals and one row per market (events turned on, share bar, SMS per year, cost per year), with a preview and a download. "Export CSV" gives one line per market and event.
 - The list is saved in the browser.
 
+**Spend with the weekly activations** (since V5.13.0.0)
+At the top of the FX Client Activations page. It starts from what we really pay Clickatell for SMS, and adds each activation week from the Activation roadmap. It shows four numbers: the real yearly baseline, what the planned weeks add per year, the yearly run rate after all weeks, and the expected SMS spend in the current calendar year (each week counted only from its go-live date). A table lists each week with its extra cost per year, its extra cost in the year, and the run rate after it. A week with events but no markets yet is listed as not costed.
+
+The baseline comes from `data/clickatell-baseline.json`, built from the Clickatell invoices (usage Dec 2024 to Nov 2025, SMS Messages USA / ROW plus MT Messages FTEU / MO). The WhatsApp licence and the June 2025 commit payment are kept in the file but are not part of the SMS baseline. Update this file when a new invoiced year is available.
+
+Each planned event in each market is costed with the Hub model (2025 orders, US event rates, Clickatell rate) and then scaled to the real invoices. The model gives about 3.2 times more than what was invoiced, and the invoices are not split by country, so two limits are shown as a range: the upper factor assumes the model is wrong by the same amount everywhere, and the lower factor assumes the US part of the model is right. The two model totals used for this are frozen in the baseline file (`calibration`), so activating more events does not move the factors. A usage report by country from Clickatell would remove the range. If a planned event already shows as live in the Messages Library before its week is marked live, the page shows a warning so it is not counted twice.
+
+The roadmap page itself shows no numbers. To keep the history of what was activated, set each week's `status` to `live` in `data/activation-roadmap.json`. GitHub keeps every version of the file.
+
 ### Methodology
 
 **How We Calculate This**
@@ -101,7 +110,7 @@ This page shows FX Client only. There is no Iterable view, and no WhatsApp yet.
 **Activation roadmap** (since V5.12.0.0)
 A roadmap of the weekly activations of B&M SMS messages in FX Client, for Ria only. Each column is one activation week (a Tuesday), each row is a region (Europe, Australia, other markets), and each box is a group of events with the markets that go live that week. A box is Planned (dashed), Confirmed (blue) or Live (green) and can show its Jira ticket. A week without a box is still open. The page shows no costs, it is only there to help the team see and decide the order of events and markets.
 
-The page reads `data/activation-roadmap.json` when it loads, so it is changed by editing that file on GitHub, with no code change. The file has four parts: `subtitle`, `weeks` (label and date), `rows` (id, label, sub label, colour) and `items`. An item has a `week` number, a `row` id, a list of `events`, the `markets` text, a `status` (`planned`, `confirmed` or `live`) and an optional `ticket`. Epic: CGD-6667. Week 1: CGD-6668. Week 2: CGD-6669.
+The page reads `data/activation-roadmap.json` when it loads, so it is changed by editing that file on GitHub, with no code change. The file has four parts: `subtitle`, `weeks` (label, date text and `goLive` date as YYYY-MM-DD), `rows` (id, label, sub label, colour) and `items`. An item has a `week` number, a `row` id, a list of `events`, the `markets` text, a `marketList` (the exact market names used in the Hub, for the cost page), a `status` (`planned`, `confirmed` or `live`) and an optional `ticket`. Event names are matched with the Hub's event names, ignoring capital letters. Epic: CGD-6667. Week 1: CGD-6668. Week 2: CGD-6669.
 
 ## A note on estimates
 
@@ -118,6 +127,7 @@ The United States is the only market with real behavioural telemetry. Event part
 - Clickatell billing: 2025 invoices
 - Opt-in data: current rate of 64 percent
 - Activation roadmap: `data/activation-roadmap.json`, edited by hand
+- Real Clickatell baseline: `data/clickatell-baseline.json`, from the Clickatell invoices (Dec 2024 to Nov 2025)
 - Global Agent markets: Global Agents file, used for the Ria sending countries filter
 - Iterable contract: current quote, Mar 2026 to Mar 2027 renewal
 
