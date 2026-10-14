@@ -77,8 +77,8 @@
   ],
   "calibration": {
     "date": "2026-10-14",
-    "modelLiveBaseline": 3227668,
-    "modelLiveBaselineUS": 560793,
-    "note": "Hub model cost of the events live on 14 Oct 2026 (all markets, and United States alone). Frozen on purpose, so activating more events does not move the factors. Upper factor = real SMS baseline / model baseline. Lower factor = (real - model US) / (model baseline - model US), which assumes the US part of the model is right."
+    "modelLiveBaseline": 853730,
+    "modelLiveBaselineUS": 655223,
+    "note": "Hub model cost of what the markets send on 14 Oct 2026, built on real 2026 event rates from Ria BI (9 measured markets, European average for the others), all markets and United States alone. Frozen on purpose, so activating more events does not move the factors. Low factor = 1 (the model is right). High factor = (real SMS baseline - model US) / (model baseline - model US), which assumes the US part of the model is right and the whole gap is in the other markets."
   }
 }
