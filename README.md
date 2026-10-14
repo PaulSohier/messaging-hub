@@ -1,4 +1,4 @@
-# Messaging Hub V5.13.0.0
+# Messaging Hub V5.13.1.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -90,6 +90,8 @@ At the top of the FX Client Activations page. It starts from what we really pay 
 The baseline comes from `data/clickatell-baseline.json`, built from the Clickatell invoices (usage Dec 2024 to Nov 2025, SMS Messages USA / ROW plus MT Messages FTEU / MO). The WhatsApp licence and the June 2025 commit payment are kept in the file but are not part of the SMS baseline. Update this file when a new invoiced year is available.
 
 Each planned event in each market is costed with the Hub model (2025 orders, US event rates, Clickatell rate) and then scaled to the real invoices. The model gives about 3.2 times more than what was invoiced, and the invoices are not split by country, so two limits are shown as a range: the upper factor assumes the model is wrong by the same amount everywhere, and the lower factor assumes the US part of the model is right. The two model totals used for this are frozen in the baseline file (`calibration`), so activating more events does not move the factors. A usage report by country from Clickatell would remove the range. If a planned event already shows as live in the Messages Library before its week is marked live, the page shows a warning so it is not counted twice.
+
+For the weekly report, the block has two buttons: Export picture (PNG) gives one picture with the four numbers and the week table, and Export CSV gives the same table with low and high values in separate columns. The calculator below has its own exports for the markets and messages in your list.
 
 The roadmap page itself shows no numbers. To keep the history of what was activated, set each week's `status` to `live` in `data/activation-roadmap.json`. GitHub keeps every version of the file.
 
