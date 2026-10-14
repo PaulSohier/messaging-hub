@@ -388,6 +388,11 @@ mark{background:#FCE68A;color:inherit;border-radius:2px;padding:0 1px;}
   .jstep-node:hover .jstep-active,
   .jstep-active > div:first-child{border-width:3px!important;}
 
+/* SPEND TABLE (page p12) */
+.fxs-spend-t th{padding:9px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--border);}
+.fxs-spend-t td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+.fxs-spend-t tr:last-child td{border-bottom:0;}
+
 /* ACTIVATION ROADMAP (page p14) */
 #p14{--rm-line:#e3e7ee;--rm-ink:#1b2430;}
 .rm-wrap{overflow-x:auto;padding-bottom:8px;}
@@ -4300,6 +4305,118 @@ function recalcIterableMigration(){
 var FXS_KEY = 'riaMessagingHub_fxScenario';
 window._fxs = window._fxs || {combos:{}, scenario:'current', optin:64, units:{}};
 
+/* ── SPEND WITH THE WEEKLY ACTIVATIONS (FX Client Activations page) ──
+   Real baseline: Clickatell invoices (data/clickatell-baseline.json).
+   Plan: data/activation-roadmap.json (weeks, go-live dates, events, markets).
+   Each planned event x market is costed with the Hub model, then scaled to the real invoices.
+   Two limits, because the invoices are not split by country:
+     high = real SMS baseline / model baseline (same error everywhere)
+     low  = (real - model US) / (model baseline - model US) (the US part of the model is right) */
+async function renderFxSpend(){
+  const box = document.getElementById('fxs-spend'); if(!box) return;
+  const D = window._imData;
+  let B, R;
+  try{
+    const rs = await Promise.all([fetch('data/clickatell-baseline.json'), fetch('data/activation-roadmap.json')]);
+    if(!rs[0].ok || !rs[1].ok) throw new Error('fetch failed');
+    B = await rs[0].json(); R = await rs[1].json();
+  } catch(e){
+    box.innerHTML = '<div class="rm-intro" style="margin-bottom:20px;">Spend with the weekly activations could not be loaded. Check that data/clickatell-baseline.json and data/activation-roadmap.json exist on this branch.</div>';
+    return;
+  }
+  const money = function(n){ return '$'+Math.round(n).toLocaleString('en-US'); };
+  const range = function(a,b){ return Math.round(a) === Math.round(b) ? money(a) : money(a)+' to '+money(b); };
+  const esc2 = function(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  const cal = B.calibration;
+  const fHigh = B.smsYearly / cal.modelLiveBaseline;
+  const fLow = (B.smsYearly - cal.modelLiveBaselineUS) / (cal.modelLiveBaseline - cal.modelLiveBaselineUS);
+  const year = new Date().getFullYear();
+  const evIndex = {}; D.US_EVENTS.forEach(function(e,i){ evIndex[e.n.toLowerCase()] = i; });
+  const share = function(goLive){
+    const g = Date.UTC.apply(null, goLive.split('-').map(function(x,i){ return i===1 ? +x-1 : +x; }));
+    const start = Date.UTC(year,0,1), end = Date.UTC(year,11,31);
+    if(g > end) return 0; if(g < start) return 1;
+    return ((end - g)/86400000 + 1) / 365;
+  };
+
+  let cumLow = 0, cumHigh = 0, sumLow = 0, sumHigh = 0, y26Low = 0, y26High = 0, liveLow = 0, liveHigh = 0;
+  const warn = [];
+  const trs = (R.weeks||[]).map(function(w, wi){
+    const items = (R.items||[]).filter(function(it){ return it.week === wi+1; });
+    let raw = 0, evs = {}, mks = {}, status = null, uncosted = false, allEv = {};
+    items.forEach(function(it){
+      (it.events||[]).forEach(function(en){ allEv[en] = 1; });
+      const ml = it.marketList || [];
+      if(!ml.length) uncosted = true;
+      (it.events||[]).forEach(function(en){
+        const i = evIndex[String(en).toLowerCase()];
+        ml.forEach(function(m){
+          if(i === undefined || D.ORDERS[m] === undefined || D.CLICKATELL[m] === undefined){ warn.push(en+' in '+m+' is not costed (no event rate, orders or rate on file).'); return; }
+          if(it.status !== 'live' && (D.LIVE_EVENTS[m]||[]).indexOf(i) !== -1) warn.push(en+' in '+m+' already shows as live in the Messages Library, check that it is not counted twice.');
+          const e = D.US_EVENTS[i];
+          raw += (e.p/100) * D.ORDERS[m] * e.s * D.CLICKATELL[m];
+          evs[en] = 1; mks[m] = 1;
+        });
+      });
+    });
+    const sts = items.map(function(it){ return it.status; });
+    status = sts.length && sts.every(function(x){ return x === 'live'; }) ? 'live' : (sts.indexOf('confirmed') !== -1 || sts.indexOf('live') !== -1 ? 'confirmed' : 'planned');
+    if(!items.length || (raw === 0 && !uncosted)){
+      return '<tr><td><b>'+esc2(w.label)+'</b></td><td>'+esc2(w.date)+'</td><td colspan="5" style="color:var(--muted);">'+(items.length ? 'Nothing to cost' : 'Not decided yet')+'</td></tr>';
+    }
+    if(raw === 0){
+      const pc = {planned:'#B26A00', confirmed:'#1B5FA0', live:'var(--live)'}[status] || '#B26A00';
+      return '<tr><td><b>'+esc2(w.label)+'</b></td><td>'+esc2(w.date)+'</td>'
+        + '<td><span style="color:'+pc+';font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.05em;">'+esc2(status)+'</span></td>'
+        + '<td style="max-width:300px;">'+esc2(Object.keys(allEv).join(', '))+' (markets still to be defined)</td>'
+        + '<td colspan="3" style="color:var(--muted);">Not costed yet</td></tr>';
+    }
+    const lo = raw * fLow, hi = raw * fHigh, sh = share(w.goLive);
+    if(!uncosted || raw > 0){
+      cumLow += lo; cumHigh += hi; sumLow += lo; sumHigh += hi; y26Low += lo*sh; y26High += hi*sh;
+      if(status === 'live'){ liveLow += lo; liveHigh += hi; }
+    }
+    const st = status || 'planned';
+    const what = Object.keys(evs).join(', ') + (Object.keys(mks).length ? ' in '+Object.keys(mks).join(', ') : '') + (uncosted ? ' (some markets still to be defined)' : '');
+    const pill = {planned:'#B26A00', confirmed:'#1B5FA0', live:'var(--live)'}[st] || '#B26A00';
+    return '<tr><td><b>'+esc2(w.label)+'</b></td><td>'+esc2(w.date)+'</td>'
+      + '<td><span style="color:'+pill+';font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.05em;">'+esc2(st)+'</span></td>'
+      + '<td style="max-width:300px;">'+esc2(what)+'</td>'
+      + '<td>'+range(lo,hi)+'</td><td>'+range(lo*sh,hi*sh)+'</td><td><b>'+range(B.smsYearly+cumLow, B.smsYearly+cumHigh)+'</b></td></tr>';
+  }).join('');
+
+  const card = 'background:var(--card);border:1px solid var(--border);border-radius:var(--radius);';
+  const lbl = 'font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)';
+  const kpi = function(label, value, note){
+    return '<div style="flex:1;min-width:210px;'+card+'padding:16px 18px;"><div style="'+lbl+';margin-bottom:4px;">'+label+'</div>'
+      + '<div style="font-size:22px;font-weight:700;line-height:1.25;">'+value+'</div>'
+      + '<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;">'+note+'</div></div>';
+  };
+  const warnHtml = warn.length ? '<div style="font-size:12px;color:#B26A00;margin-top:10px;line-height:1.6;">'+Array.from(new Set(warn)).map(esc2).join('<br>')+'</div>' : '';
+  const notIn = (B.notInSmsBaseline||[]).map(function(x){ return esc2(x.label)+' '+money(x.amount); }).join(' and ');
+
+  box.innerHTML = '<div style="margin-bottom:24px;">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:4px;">Spend with the weekly activations</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">What we really pay for SMS with Clickatell, plus what each activation week adds. Weeks come from the Activation roadmap. Figures after the baseline are estimates, shown as a range.</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;">'
+    + kpi('Real baseline per year', money(B.smsYearly), 'Clickatell SMS invoices, usage '+esc2(B.usagePeriod)+'.')
+    + kpi('Added by the planned weeks', range(sumLow, sumHigh), 'Per year, once all planned weeks are live'+(liveHigh ? '. Already live: '+range(liveLow, liveHigh)+'.' : '.'))
+    + kpi('Yearly run rate after all weeks', range(B.smsYearly+sumLow, B.smsYearly+sumHigh), 'Baseline plus the planned weeks.')
+    + kpi('Expected SMS spend in '+year, range(B.smsYearly+y26Low, B.smsYearly+y26High), 'Baseline for the full year, plus each week counted only from its go-live date.')
+    + '</div>'
+    + '<div style="'+card+'overflow:auto;"><table class="fxs-spend-t" style="width:100%;border-collapse:collapse;font-size:12px;">'
+    + '<thead><tr><th>Week</th><th>Go-live</th><th>Status</th><th>What</th><th>Extra per year</th><th>Extra in '+year+'</th><th>Yearly run rate after this week</th></tr></thead>'
+    + '<tbody>'+trs+'</tbody></table></div>'
+    + warnHtml
+    + '<details style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.7;"><summary style="cursor:pointer;font-weight:600;color:var(--text);">How these numbers are built</summary>'
+    + '<div style="padding:8px 2px;">The baseline is the SMS part of the Clickatell invoices for '+esc2(B.usagePeriod)+' ('+esc2((B.smsLines||[]).map(function(x){ return x.label+' '+money(x.amount); }).join(' and '))+'). '
+    + 'It is the last invoiced year, so it is used as the baseline for '+year+' too. Not included: '+notIn+'.<br>'
+    + 'Each planned event in each market is costed with the Hub model (2025 orders, US event rates, Clickatell rate). The model alone gives '+money(cal.modelLiveBaseline)+' for the events live on '+esc2(cal.date)+', against '+money(B.smsYearly)+' really invoiced, so every added cost is scaled down. '
+    + 'The invoices are not split by country, so two limits are used: x'+fHigh.toFixed(2)+' if the model is wrong by the same amount everywhere, and x'+fLow.toFixed(2)+' if the US part of the model is right and the difference is in the other markets. '
+    + 'The range will narrow when Clickatell gives a usage report by country.</div></details>'
+    + '</div>';
+}
+
 function renderFxScenario(){
   if(!window._imData) renderIterableMigration();   // loads the shared rate and event data
   const D = window._imData;
@@ -4335,6 +4452,7 @@ function renderFxScenario(){
 
   const html = '<div class="calc-wrap">'
     + libStatusHtml()
+    + '<div id="fxs-spend"></div>'
     + '<div style="background:var(--purple-bg);border:1px solid var(--purple);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.75;">'
     + '<div style="font-weight:700;margin-bottom:6px;">What this page answers</div>'
     + 'Pick any markets and any messages, add them to the list, and see <strong>how much extra SMS would cost per year</strong> if we turn them on in FX Client, sending with Clickatell. Nothing here involves Iterable. You can add different events for different markets, change the billing units of a message to test a shorter text, then export the result as a picture.'
@@ -4391,6 +4509,7 @@ function renderFxScenario(){
     + '</div>';
 
   document.getElementById('p12-content').innerHTML = html;
+  renderFxSpend();
   document.getElementById('fxs-scenario').value = S.scenario;
   document.getElementById('fxs-optin').value = S.optin;
   if(noRate > 0){
