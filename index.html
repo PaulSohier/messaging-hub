@@ -581,6 +581,15 @@ mark{background:#FCE68A;color:inherit;border-radius:2px;padding:0 1px;}
 </div>
 
 <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
+<div style="font-size:14px;font-weight:700;margin-bottom:10px;">Real 2026 rates (Ria BI), updated Oct 2026</div>
+<p style="margin-bottom:10px;"><strong>Source.</strong> Power BI reports "Global BI notifications" (SMS count per event, by Country From) and "Ria Transactions", from 1 Jan to 13 Oct 2026 (286 days). Nine markets are measured: United States, Canada, Australia, France, Spain, Germany, Italy, United Kingdom and Belgium. Rate = SMS for an event divided by transactions, as a percentage.</p>
+<p style="margin-bottom:10px;"><strong>What is live today.</strong> For a measured market, the real 2026 rate of each event. For the other markets, the European average (France, Spain, Germany, Italy, UK and Belgium pooled), only for the events live in the Messages Library. Orders for the 9 markets are the 2026 transactions annualised (x 365/286).</p>
+<p style="margin-bottom:10px;"><strong>What happens if an event is activated.</strong> Full coverage = the US 2026 rate of the event. For Ready for Pickup it is adjusted by each market's share of office pick-up transactions compared with the US. Extra SMS = full coverage minus what the market sends today. An event counts as live when its real rate reaches 60% of full coverage, and then adds nothing.</p>
+<p style="margin-bottom:10px;"><strong>Check against the invoices.</strong> The estimate of what we send today is about 84% of the real Clickatell SMS invoices (Dec 2024 to Nov 2025). The difference can come from the older period, MO and other messages, and unmeasured markets.</p>
+<p><strong>Not changed.</strong> The two older SMS calculators (Tabs 4 and 5) still use the 2025 US rates on purpose: they answer "what if every market sent like the US".</p>
+</div>
+
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
 <div style="font-size:14px;font-weight:700;margin-bottom:10px;">The SMS Cost Calculator (Tabs 4 &amp; 5)</div>
 <p style="margin-bottom:10px;">Projected cost = <strong>selected country's order volume × US participation rate for that event × local SMS cost × billing units per message</strong>.</p>
 <p style="margin-bottom:10px;">Participation rate is measured from real US 2025 order and notification volumes (Power BI) — the share of orders that actually triggered each SMS event. Every other country borrows this rate as a proxy, since the US is the only market with its own behavioral history on file.</p>
@@ -601,7 +610,8 @@ mark{background:#FCE68A;color:inherit;border-radius:2px;padding:0 1px;}
 <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;">
 <div style="font-size:14px;font-weight:700;margin-bottom:10px;">Data sources</div>
 <ul style="padding-left:18px;">
-<li style="margin-bottom:6px;">Order volumes — Power BI, all B&amp;M markets, 2025</li>
+<li style="margin-bottom:6px;">Order volumes: Power BI, all B&amp;M markets, 2025 (9 markets refreshed with 2026 transactions)</li>
+<li style="margin-bottom:6px;">Event rates, 9 markets: Ria BI "Global BI notifications" and "Ria Transactions", 1 Jan to 13 Oct 2026</li>
 <li style="margin-bottom:6px;">Message templates — Google Sheet mirroring the Ria transactional message library (B&amp;M + Digital tabs)</li>
 <li style="margin-bottom:6px;">SMS costs (Clickatell) — current contracted telco rates</li>
 <li style="margin-bottom:6px;">SMS costs (Twilio) — contract rate schedule, effective Aug 1, 2025</li>
@@ -3960,6 +3970,56 @@ function recalcOptInByJourney(){
   } catch(e){ /* storage unavailable, non-critical */ }
 }
 
+/* ── OBSERVED 2026 RATES (Ria BI: Global BI notifications + Ria Transactions) ──
+   Real SMS counts per event and real transactions (Country From) for 9 markets, 1 Jan to 13 Oct 2026 (286 days).
+   Unmeasured markets use the European average (pooled FR, ES, DE, IT, UK, BE) for the events live in the Messages Library. */
+const OBS = {period:'1 Jan to 13 Oct 2026', days:286, markets:{"United States":{"tx":53383737,"ev":{"Transaction Ready for Pickup":25257623,"Transaction Paid":19260179,"Transaction Pick Up Reminder (3 Days)":874110,"Transaction Canceled":194596,"Strategic Retail Partners - Refund Completed":164552,"Strategic Retail Partners - Available for Refund":164020,"Transaction Pick Up Reminder (7 Days)":114620,"Transaction Needs Information":66450,"Agent activated due to paid credit":50152,"Transaction Pick Up Reminder (14 Days)":44709,"Customer Opt-In":39382,"Transaction Resent":37756,"Agent suspended due to past-due balance":23375,"Transaction Rejected":20970,"Requires interview":10144,"Transaction Ready for Refund":8762,"Fraud Model - Transaction Needs Information":6908},"pickupTx":30302074},"Canada":{"tx":4456257,"ev":{"Transaction Paid":1524870,"Transaction Ready for Pickup":570091,"Transaction Needs Information":3340,"Customer Opt-In":2001,"Requires interview":1185,"Agent activated due to paid credit":43,"Agent suspended due to past-due balance":39,"Agent suspended 15 days reminder":12,"Agent suspended 7 days reminder":6},"pickupTx":2448905},"Australia":{"tx":2225104,"ev":{"Transaction Ready for Pickup":570573,"Transaction Paid":551502,"Payment Instructions Sent":86455,"Transaction Expired":5243,"Transaction Cancelled (Incorrect Account Details)":2677,"Transaction Ready for Refund":1960,"Invalid Payment":1401,"Transaction Cancelled (Time Limit Expired)":887,"Customer Opt-In":757,"Transaction Cancelled (Customer Requested)":620,"Transaction Needs Information":5,"Transaction Cancelled (Test Transaction)":2},"pickupTx":792396},"France":{"tx":12491882,"ev":{"Transaction Ready for Pickup":47982,"Transaction Ready for Refund":17395,"Customer Opt-In":5371,"Transaction Paid":778},"pickupTx":8790174},"Spain":{"tx":15429613,"ev":{"Transaction Ready for Refund":56722,"Transaction Ready for Pickup":33374,"Customer Opt-In":5737,"Transaction Entered":37,"Transaction Needs Information":12},"pickupTx":7114510},"Germany":{"tx":5609166,"ev":{"Transaction Ready for Pickup":43240,"Transaction Ready for Refund":10024,"Transaction Paid":5608,"Customer Opt-In":1996},"pickupTx":3850136},"Italy":{"tx":7980980,"ev":{"Transaction Ready for Pickup":74405,"Transaction Ready for Refund":4880,"Customer Opt-In":4496},"pickupTx":3961525},"United Kingdom":{"tx":4811366,"ev":{"Transaction Ready for Pickup":62408,"Transaction Ready for Refund":17544,"Customer Opt-In":2020,"Transaction Needs Information":1},"pickupTx":1958650},"Belgium":{"tx":2226285,"ev":{"Transaction Ready for Pickup":6973,"Transaction Ready for Refund":2845,"Customer Opt-In":776,"Transaction Needs Information":241},"pickupTx":1760541}}};
+const OBS_EU = ['France','Spain','Germany','Italy','United Kingdom','Belgium'];
+const OBS_COVER_MIN = 0.6;   // an event counts as live when its real rate reaches 60% of the full-coverage rate
+function obsRate(c,n){ const m = OBS.markets[c]; return m ? ((m.ev[n]||0)/m.tx*100) : null; }
+function obsEuRate(n){ let a=0, t=0; OBS_EU.forEach(function(c){ const m = OBS.markets[c]; a += m.ev[n]||0; t += m.tx; }); return a/t*100; }
+function obsLibLive(D,c,i){ return (D.LIVE_EVENTS[c]||[]).indexOf(i) !== -1; }
+// What the market sends today, as % of transactions
+function obsTodayRate(D,c,i){
+  const e = D.US_EVENTS[i];
+  if(OBS.markets[c]) return obsRate(c,e.n);
+  return obsLibLive(D,c,i) ? obsEuRate(e.n) : 0;
+}
+// What the market would send with full coverage, as % of transactions (US 2026 rate; office pick-up scaled by the market's pick-up share)
+function obsFullRate(D,c,i){
+  const e = D.US_EVENTS[i]; let r = e.p;
+  if(e.n === 'Transaction Ready for Pickup'){
+    const m = OBS.markets[c], u = OBS.markets['United States'];
+    if(m && u && m.tx && u.pickupTx) r = e.p * (m.pickupTx/m.tx) / (u.pickupTx/u.tx);
+  }
+  return r;
+}
+function obsIsLive(D,c,i){
+  if(!OBS.markets[c]) return obsLibLive(D,c,i);   // unmeasured: the Messages Library decides
+  const t = obsTodayRate(D,c,i);
+  return t > 0 && t >= obsFullRate(D,c,i) * OBS_COVER_MIN;
+}
+// Events a market sends today (measured: seen in the 2026 data; unmeasured: live in the library)
+function obsLiveIdx(D,c){
+  const ix = [];
+  if(OBS.markets[c]){ D.US_EVENTS.forEach(function(e,i){ if(obsTodayRate(D,c,i) > 0) ix.push(i); }); return ix; }
+  return (D.LIVE_EVENTS[c]||[]).slice();
+}
+// Yearly SMS and cost of what is live today for one market
+function obsToday(D,c,rates){
+  const rate = (rates||D.CLICKATELL)[c], orders = D.ORDERS[c]||0;
+  if(rate === undefined) return null;
+  let sms = 0;
+  obsLiveIdx(D,c).forEach(function(i){ sms += obsTodayRate(D,c,i)/100 * orders * D.US_EVENTS[i].s; });
+  return {sms:sms, cost:sms*rate, measured:!!OBS.markets[c]};
+}
+// Model total for all markets (what the hub says we spend today)
+function obsModelTotal(D,rates){
+  let all = 0, us = 0;
+  Object.keys(D.ORDERS).forEach(function(c){ const r = obsToday(D,c,rates); if(r){ all += r.cost; if(c === 'United States') us = r.cost; } });
+  return {all:all, us:us};
+}
+
 /* ── ITERABLE MIGRATION COST SIMULATOR (CGD-6450) ── */
 function renderIterableMigration(){
   const SAVE_KEY = 'riaMessagingHub_iterableMigration';
@@ -3975,26 +4035,36 @@ function renderIterableMigration(){
   const TWILIO = {"Algeria":0.2163,"Argentina":0.0748,"Australia":0.01803,"Austria":0.06657,"Belgium":0.088,"Botswana":0.06786,"Canada":0.00356,"Cayman Islands":0.2476,"Chile":0.03274,"Colombia":0.01365,"Croatia":0.07453,"Denmark":0.0524,"El Salvador":0.12886,"Equatorial Guinea":0.15907,"Finland":0.07921,"France":0.04708,"Germany":0.07708,"Greece":0.05704,"Guadeloupe":0.12689,"Guatemala":0.16986,"Haiti":0.21675,"Honduras":0.20664,"India":0.07821,"Ireland":0.06174,"Israel":0.20285,"Italy":0.05562,"Laos":0.2389,"Lithuania":0.05014,"Luxembourg":0.0818,"Malaysia":0.21257,"Martinique":0.10648,"Mexico":0.14589,"Morocco":0.20645,"Netherlands":0.08887,"New Zealand":0.084,"Nicaragua":0.10635,"Niger":0.2971,"Norway":0.05989,"Palestine":0.35595,"Panama":0.14549,"Paraguay":0.11114,"Peru":0.20798,"Philippines":0.2001,"Poland":0.02931,"Portugal":0.03216,"Puerto Rico":0.02856,"Reunion":0.12995,"Senegal":0.2594,"Singapore":0.04002,"Spain":0.05161,"Sweden":0.04141,"Switzerland":0.03553,"Togo":0.23698,"Tunisia":0.3428,"United Arab Emirates":0.10046,"United Kingdom":0.03797,"United States":0.00474};
   const ORDERS = {"Albania":87389,"Angola":48,"Antigua & Barbuda":11888,"Argentina":59436,"Armenia":38810,"Australia":2210390,"Austria":581002,"Bahamas":11,"Bahrain":281,"Barbados":5,"Belgium":2779711,"Belize":1,"Benin":47656,"Bolivia":4935,"Bosnia Herzegovina":2882,"Botswana":550,"Brazil":883,"British Virgin Islands":1,"Brunei":4963,"Bulgaria":259749,"Burkina Faso":21803,"Cambodia":683,"Cameroon":295770,"Canada":4843159,"Cape Verde":151,"Cayman Islands":1,"Chad":55383,"Chile":2893904,"Comoros":121930,"Congo Brazaville":131858,"Congo DRC":56287,"Cook Islands":1,"Croatia":4,"Cyprus":88201,"Czech Republic":159771,"Denmark":493048,"Dominican Republic":99,"Ecuador":13210,"El Salvador":3617,"Estonia":10525,"Fiji":404,"Finland":86847,"France":15495103,"Gabon":40045,"Gambia":1656,"Georgia":154382,"Germany":6274832,"Ghana":12,"Gibraltar":2,"Greece":440435,"Guam":4,"Guatemala":14859,"Guinea":13587,"Guinea Bissau":38366,"Guyana":229,"Honduras":128,"Hong Kong":6682,"Hungary":3744,"Iceland":17,"India":15,"Indonesia":573,"Ireland":252109,"Israel":370058,"Italy":10219696,"Ivory Coast":226333,"Jamaica":3,"Japan":250219,"Jordan":48782,"Kazakhstan":16937,"Kenya":1061,"Korea South":40664,"Kosovo":74821,"Kuwait":7421,"Kyrgyzstan":2016,"Laos":53,"Latvia":27773,"Lebanon":150,"Liberia":232,"Lithuania":8059,"Luxembourg":176191,"Macau":4,"Madagascar":8080,"Malawi":45,"Malaysia":4051990,"Maldives":30848,"Malta":98,"Mauritius":25262,"Moldova":40296,"Mongolia":788,"Montenegro":15283,"Morocco":30419,"Mozambique":38,"Netherlands":1099610,"New Zealand":508403,"Nicaragua":3,"Niger":4771,"North Macedonia":34638,"Norway":490052,"Oman":2655,"Panama":61,"Papua New Guinea":1,"Paraguay":479,"Peru":139,"Philippines":5761,"Poland":70433,"Portugal":1138144,"Qatar":67855,"Romania":28769,"Rwanda":32,"Saudi Arabia":9303,"Senegal":175581,"Serbia":66873,"Seychelles":6237,"Sierra Leone":24,"Singapore":95358,"Slovakia":156,"Slovenia":19,"Solomon Islands":7824,"South Africa":607391,"South Sudan":46,"Spain":17938861,"Sri Lanka":4,"Suriname":839,"Sweden":540774,"Switzerland":1547206,"Tanzania":3968,"Thailand":1130,"Togo":36264,"Trinidad & Tobago":1,"Turkey":107900,"Turks & Caicos":16114,"Uganda":484,"Ukraine":1,"United Arab Emirates":61984,"United Kingdom":5012286,"United States":69927961,"Vanuatu":29,"Zambia":470,"Zimbabwe":641};
 
-  // Real 2025 US event data: participation rate and real SMS billing segments.
-  // US is the only market with behavioural telemetry, so these rates are
-  // applied as a proxy to other markets — the same methodology used across
-  // the rest of this Hub. Flagged in the UI wherever that applies.
+  // Orders per year for the 9 measured markets: real 2026 transactions, annualised (365/286).
+  Object.keys(OBS.markets).forEach(function(m){ ORDERS[m] = Math.round(OBS.markets[m].tx*365/OBS.days); });
+
+  // Full-coverage event rates (p, % of transactions) = what the US sends in 2026 (Ria BI, 1 Jan to 13 Oct 2026),
+  // with the real SMS billing segments. Markets with 2026 data (OBS) use their own real rates for what is live today;
+  // the others use the European average. The US rate is only used for what would happen with full coverage.
   const US_EVENTS = [
-    {n:'Transaction Ready for Pickup', p:35.6486, s:2},{n:'Transaction Paid', p:34.9982, s:2},
-    {n:'Transaction Pick Up Reminder (3 Days)', p:0.6675, s:3},{n:'Transaction Canceled', p:0.242, s:2},
-    {n:'Strategic Retail Partners - Refund Completed', p:0.2409, s:1},{n:'Strategic Retail Partners - Available for Refund', p:0.2406, s:2},
-    {n:'Transaction Needs Information', p:0.1788, s:2},{n:'Transaction Pick Up Reminder (7 Days)', p:0.1394, s:2},
-    {n:'Transaction Resent', p:0.0627, s:2},{n:'Customer Opt-In', p:0.0571, s:1},
-    {n:'Transaction Pick Up Reminder (14 Days)', p:0.0484, s:2},{n:'Agent activated due to paid credit', p:0.0344, s:2},
-    {n:'Transaction Rejected', p:0.0302, s:2},{n:'Requires interview', p:0.0238, s:2},
+    {n:'Transaction Ready for Pickup', p:47.3133, s:2},{n:'Transaction Paid', p:36.0787, s:2},
+    {n:'Transaction Pick Up Reminder (3 Days)', p:1.6374, s:3},{n:'Transaction Canceled', p:0.3645, s:2},
+    {n:'Strategic Retail Partners - Refund Completed', p:0.3082, s:1},{n:'Strategic Retail Partners - Available for Refund', p:0.3072, s:2},
+    {n:'Transaction Needs Information', p:0.1245, s:2},{n:'Transaction Pick Up Reminder (7 Days)', p:0.2147, s:2},
+    {n:'Transaction Resent', p:0.0707, s:2},{n:'Customer Opt-In', p:0.0738, s:1},
+    {n:'Transaction Pick Up Reminder (14 Days)', p:0.0838, s:2},{n:'Agent activated due to paid credit', p:0.0939, s:2},
+    {n:'Transaction Rejected', p:0.0393, s:2},{n:'Requires interview', p:0.019, s:2},
     {n:'Refund Reminder (3 Day)', p:0.0435, s:2},{n:'Refund Reminder (7 Day)', p:0.0273, s:2},
-    {n:'Refund Reminder (14 Day)', p:0.021, s:2},{n:'Agent suspended due to past-due balance', p:0.0164, s:2},
-    {n:'Transaction Ready for Refund', p:0.0137, s:2},{n:'Agent suspended 7 days reminder', p:0.0042, s:2},
+    {n:'Refund Reminder (14 Day)', p:0.021, s:2},{n:'Agent suspended due to past-due balance', p:0.0438, s:2},
+    {n:'Transaction Ready for Refund', p:0.0164, s:2},{n:'Agent suspended 7 days reminder', p:0.0042, s:2},
     {n:'Agent suspended 15 days reminder', p:0.0039, s:3},{n:'Transaction Cancelled (Time Limit Expired)', p:0.0028, s:2},
     {n:'Refund Reminder (1 Day)', p:0.0007, s:2},{n:'Refund Reminder (2 Day)', p:0.0006, s:2},
     {n:'Refund Reminder (20 Day)', p:0.0003, s:2},{n:'Transaction Pick Up Reminder (1 Day)', p:0.0001, s:1},
     {n:'Transaction Pick Up Reminder (2 Days)', p:0.0001, s:3},{n:'Transaction Sent To Be Paid', p:0.0, s:2},
     {n:'Transaction Cancelled (Test Transaction)', p:0.0, s:1},
+    // Added in 2026: events seen in the Ria BI data of the measured markets. Rate = highest rate observed in a measured market.
+    {n:'Fraud Model - Transaction Needs Information', p:0.0129, s:2},
+    {n:'Payment Instructions Sent', p:3.8854, s:2},
+    {n:'Transaction Expired', p:0.2356, s:2},
+    {n:'Transaction Cancelled (Incorrect Account Details)', p:0.1203, s:2},
+    {n:'Invalid Payment', p:0.063, s:2},
+    {n:'Transaction Cancelled (Customer Requested)', p:0.0279, s:2},
+    {n:'Transaction Entered', p:0.0002, s:2},
   ];
 
   // Which SMS events are actually LIVE in each market today, from the
@@ -4022,7 +4092,7 @@ function renderIterableMigration(){
     // ── Plain-language explainer ──
     + '<div style="background:var(--purple-bg);border:1px solid var(--purple);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.75;">'
     + '<div style="font-weight:700;margin-bottom:6px;">What this page answers</div>'
-    + 'Pick the markets and the messages you want to send. This page shows <strong>how much the SMS would cost per year</strong>, using the carrier rates and the real 2025 US event data.<br>'
+    + 'Pick the markets and the messages you want to send. This page shows <strong>how much the SMS would cost per year</strong>, using the carrier rates and real 2026 event data from Ria BI (9 markets measured, the rest estimated with the European average).<br>'
     + '</div>'
 
     // ── Headline sentence ──
@@ -4185,14 +4255,17 @@ function recalcIterableMigration(){
   const chosenEvents = Array.from(document.querySelectorAll('.im-ev')).filter(function(cb){ return cb.checked; }).map(function(cb){ return parseInt(cb.value,10); });
 
   // Cost for a given country using a given set of event indexes
-  function costFor(country, evIdxs){
+  // mode 'today': what the market really sends today. mode 'full': live events at today's rate, the others at full coverage.
+  function costFor(country, evIdxs, mode){
     const orders = D.ORDERS[country] || 0;
     const rate = rates[country];
     if(rate === undefined) return null;
     let segs = 0, evs = 0;
     evIdxs.forEach(function(i){
       const e = D.US_EVENTS[i]; if(!e) return;
-      const fires = (e.p/100) * orders * scale;
+      const t = obsTodayRate(D,country,i);
+      const pct = mode === 'full' ? (obsIsLive(D,country,i) ? t : obsFullRate(D,country,i)) : t;
+      const fires = (pct/100) * orders * scale;
       evs  += fires;
       segs += fires * e.s;
     });
@@ -4206,17 +4279,17 @@ function recalcIterableMigration(){
   let newlyActivated = 0; // count of country+event combos being switched on
 
   scope.forEach(function(c){
-    const liveIdxs = (D.LIVE_EVENTS[c] || []);
+    const liveIdxs = obsLiveIdx(D,c);
     const useIdxs = evMode === 'live' ? liveIdxs : chosenEvents;
-    const r = costFor(c, useIdxs);
+    const r = costFor(c, useIdxs, evMode === 'live' ? 'today' : 'full');
     if(r === null){ if((D.ORDERS[c]||0) > 0) missingRate.push(c); return; }
     segments += r.segments; events += r.events; carrierCost += r.cost;
-    marketRows.push({c:c, events:r.events, cost:r.cost});
+    marketRows.push({c:c, events:r.events, cost:r.cost, measured:!!OBS.markets[c]});
 
-    const b = costFor(c, liveIdxs);
+    const b = costFor(c, liveIdxs, 'today');
     if(b) baselineCost += b.cost;
     if(evMode === 'custom'){
-      useIdxs.forEach(function(i){ if(liveIdxs.indexOf(i) === -1) newlyActivated++; });
+      useIdxs.forEach(function(i){ if(!obsIsLive(D,c,i)) newlyActivated++; });
     }
   });
 
@@ -4268,10 +4341,10 @@ function recalcIterableMigration(){
   if(liveNote){
     if(!scope.length){ liveNote.textContent = ''; }
     else if(evMode === 'live'){
-      const counts = scope.map(function(c){ return (D.LIVE_EVENTS[c]||[]).length; });
+      const counts = scope.map(function(c){ return obsLiveIdx(D,c).length; });
       const totalLive = counts.reduce(function(a,b){ return a+b; },0);
-      const noneLive = scope.filter(function(c){ return !(D.LIVE_EVENTS[c]||[]).length; });
-      liveNote.innerHTML = 'Using each market&rsquo;s real current coverage: '+totalLive+' country+event combinations live across '+scope.length+' market'+(scope.length===1?'':'s')+'.'
+      const noneLive = scope.filter(function(c){ return !obsLiveIdx(D,c).length; });
+      liveNote.innerHTML = 'Using what each market really sends today: '+totalLive+' country+event combinations live across '+scope.length+' market'+(scope.length===1?'':'s')+'.'
         + (noneLive.length ? ' <strong>'+noneLive.length+'</strong> selected market'+(noneLive.length>1?'s have':' has')+' no live SMS events at all, so contribute nothing here.' : '');
     } else {
       const extra = newlyActivated > 0
@@ -4286,7 +4359,11 @@ function recalcIterableMigration(){
   const notes = [];
   const nonUS = scope.filter(function(c){ return c !== 'United States'; });
   if(nonUS.length){
-    notes.push('<strong>Estimate for non-US markets.</strong> Event rates and message lengths come from real 2025 US data, applied as a proxy — the US is the only market with behavioural telemetry. The US figure is measured; the rest are modelled.');
+    const unm = scope.filter(function(c){ return !OBS.markets[c]; });
+    const meas = scope.length - unm.length;
+    notes.push((meas ? '<strong>'+meas+' market'+(meas>1?'s are':' is')+' measured</strong> with real 2026 event rates from Ria BI. ' : '')
+      + (unm.length ? '<strong>'+unm.length+' market'+(unm.length>1?'s are':' is')+' estimated:</strong> no 2026 data, so the European average rate is used for the events live in the Messages Library. ' : '')
+      + 'Events not live today are costed at the full-coverage rate (US 2026 rate).');
   }
   if(missingRate.length){
     notes.push('<strong>'+missingRate.length+' selected market'+(missingRate.length>1?'s':'')+' excluded</strong> — no '+carrierName+' rate on file: '+missingRate.slice(0,10).join(', ')+(missingRate.length>10?', and '+(missingRate.length-10)+' more':'')+'.');
@@ -4299,7 +4376,7 @@ function recalcIterableMigration(){
   const head = '<tr><td style="'+th+'">Market</td><td style="'+th+'text-align:right;">SMS per year</td><td style="'+th+'text-align:right;">Cost per year</td></tr>';
   const rowsHtml = head + marketRows.sort(function(a,b){ return b.cost - a.cost; }).map(function(r){
     return '<tr style="border-top:1px solid var(--border);">'
-      + '<td style="padding:8px 10px;font-size:12px;color:var(--text);">'+esc(r.c)+'</td>'
+      + '<td style="padding:8px 10px;font-size:12px;color:var(--text);">'+esc(r.c)+(r.measured ? '' : ' <span style="color:var(--hint);font-size:10px;">(estimate)</span>')+'</td>'
       + '<td style="padding:8px 10px;font-size:12px;text-align:right;color:var(--text);white-space:nowrap;">'+num(r.events)+'</td>'
       + '<td style="padding:8px 10px;font-size:12px;text-align:right;color:var(--text);white-space:nowrap;">'+money(r.cost)+'</td></tr>';
   }).join('');
@@ -4325,6 +4402,41 @@ window._fxs = window._fxs || {combos:{}, scenario:'current', optin:64, units:{}}
    Two limits, because the invoices are not split by country:
      high = real SMS baseline / model baseline (same error everywhere)
      low  = (real - model US) / (model baseline - model US) (the US part of the model is right) */
+function fxsFillToday(D, B){
+  const box = document.getElementById('fxs-today'); if(!box) return;
+  const money = function(n){ return '$'+Math.round(n).toLocaleString('en-US'); };
+  const num = function(n){ return Math.round(n).toLocaleString('en-US'); };
+  const rows = [];
+  Object.keys(D.ORDERS).forEach(function(c){ const r = obsToday(D,c); if(r && r.cost > 0) rows.push({c:c, r:r, orders:D.ORDERS[c]}); });
+  rows.sort(function(a,b){ return b.r.cost - a.r.cost; });
+  const total = rows.reduce(function(s,x){ return s + x.r.cost; }, 0);
+  const totalSms = rows.reduce(function(s,x){ return s + x.r.sms; }, 0);
+  const real = B && B.smsYearly ? B.smsYearly : 0;
+  const top = rows.slice(0,12), rest = rows.slice(12);
+  const restCost = rest.reduce(function(s,x){ return s + x.r.cost; }, 0), restSms = rest.reduce(function(s,x){ return s + x.r.sms; }, 0);
+  const th = 'padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);';
+  const td = 'padding:7px 10px;font-size:12px;';
+  const card = 'background:var(--card);border:1px solid var(--border);border-radius:var(--radius);';
+  box.innerHTML = '<div style="'+card+'padding:18px 22px;margin-bottom:20px;">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:4px;">What we send today</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Real 2026 SMS per event from Ria BI ('+esc(OBS.period)+') for the 9 measured markets, yearly. Other markets use the European average for the events live in the Messages Library. Clickatell rates.</div>'
+    + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;">'
+    + '<div style="flex:1;min-width:190px;background:var(--bg);border-radius:8px;padding:12px 16px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);">Estimated SMS cost today</div><div style="font-size:22px;font-weight:700;">'+money(total)+'</div><div style="font-size:11px;color:var(--muted);">per year, '+num(totalSms)+' SMS segments</div></div>'
+    + (real ? '<div style="flex:1;min-width:190px;background:var(--bg);border-radius:8px;padding:12px 16px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);">Real Clickatell SMS invoices</div><div style="font-size:22px;font-weight:700;">'+money(real)+'</div><div style="font-size:11px;color:var(--muted);">'+esc(B.usagePeriod)+'. The estimate explains '+Math.round(total/real*100)+'% of it.</div></div>' : '')
+    + '</div>'
+    + '<table style="width:100%;border-collapse:collapse;"><tbody>'
+    + '<tr><td style="'+th+'">Market</td><td style="'+th+'">Data</td><td style="'+th+'text-align:right;">SMS per year</td><td style="'+th+'text-align:right;">SMS per 100 orders</td><td style="'+th+'text-align:right;">Cost per year</td></tr>'
+    + top.map(function(x){
+        return '<tr style="border-top:1px solid var(--border);"><td style="'+td+'font-weight:600;">'+esc(x.c)+'</td>'
+          + '<td style="'+td+'color:'+(x.r.measured?'var(--live)':'var(--muted)')+';">'+(x.r.measured?'Measured 2026':'Estimate')+'</td>'
+          + '<td style="'+td+'text-align:right;">'+num(x.r.sms)+'</td>'
+          + '<td style="'+td+'text-align:right;">'+(x.orders ? (x.r.sms/x.orders*100).toFixed(1) : '')+'</td>'
+          + '<td style="'+td+'text-align:right;font-weight:600;">'+money(x.r.cost)+'</td></tr>';
+      }).join('')
+    + (rest.length ? '<tr style="border-top:1px solid var(--border);"><td style="'+td+'">'+rest.length+' other markets</td><td style="'+td+'color:var(--muted);">Estimate</td><td style="'+td+'text-align:right;">'+num(restSms)+'</td><td style="'+td+'"></td><td style="'+td+'text-align:right;font-weight:600;">'+money(restCost)+'</td></tr>' : '')
+    + '</tbody></table></div>';
+}
+
 async function renderFxSpend(){
   const box = document.getElementById('fxs-spend'); if(!box) return;
   const D = window._imData;
@@ -4341,8 +4453,10 @@ async function renderFxSpend(){
   const range = function(a,b){ return Math.round(a) === Math.round(b) ? money(a) : money(a)+' to '+money(b); };
   const esc2 = function(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
   const cal = B.calibration;
-  const fHigh = B.smsYearly / cal.modelLiveBaseline;
-  const fLow = (B.smsYearly - cal.modelLiveBaselineUS) / (cal.modelLiveBaseline - cal.modelLiveBaselineUS);
+  // The model is built on 2026 observed rates, so it is close to the invoices. Low = the model is right. High = the US part is right and the whole gap sits in the other markets.
+  const fLow = 1;
+  const fHigh = Math.max(1, (B.smsYearly - cal.modelLiveBaselineUS) / (cal.modelLiveBaseline - cal.modelLiveBaselineUS));
+  fxsFillToday(D, B);
   const year = new Date().getFullYear();
   const evIndex = {}; D.US_EVENTS.forEach(function(e,i){ evIndex[e.n.toLowerCase()] = i; });
   const share = function(goLive){
@@ -4365,9 +4479,10 @@ async function renderFxSpend(){
         const i = evIndex[String(en).toLowerCase()];
         ml.forEach(function(m){
           if(i === undefined || D.ORDERS[m] === undefined || D.CLICKATELL[m] === undefined){ warn.push(en+' in '+m+' is not costed (no event rate, orders or rate on file).'); return; }
-          if(it.status !== 'live' && (D.LIVE_EVENTS[m]||[]).indexOf(i) !== -1) warn.push(en+' in '+m+' already shows as live in the Messages Library, check that it is not counted twice.');
           const e = D.US_EVENTS[i];
-          raw += (e.p/100) * D.ORDERS[m] * e.s * D.CLICKATELL[m];
+          const extraRate = obsIsLive(D,m,i) ? 0 : Math.max(0, obsFullRate(D,m,i) - obsTodayRate(D,m,i));
+          if(extraRate === 0) warn.push(en+' in '+m+' already runs at full coverage today, so it adds nothing.');
+          raw += (extraRate/100) * D.ORDERS[m] * e.s * D.CLICKATELL[m];
           evs[en] = 1; mks[m] = 1;
         });
       });
@@ -4431,8 +4546,8 @@ async function renderFxSpend(){
     + '<details style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.7;"><summary style="cursor:pointer;font-weight:600;color:var(--text);">How these numbers are built</summary>'
     + '<div style="padding:8px 2px;">The baseline is the SMS part of the Clickatell invoices for '+esc2(B.usagePeriod)+' ('+esc2((B.smsLines||[]).map(function(x){ return x.label+' '+money(x.amount); }).join(' and '))+'). '
     + 'It is the last invoiced year, so it is used as the baseline for '+year+' too. Not included: '+notIn+'.<br>'
-    + 'Each planned event in each market is costed with the Hub model (2025 orders, US event rates, Clickatell rate). The model alone gives '+money(cal.modelLiveBaseline)+' for the events live on '+esc2(cal.date)+', against '+money(B.smsYearly)+' really invoiced, so every added cost is scaled down. '
-    + 'The invoices are not split by country, so two limits are used: x'+fHigh.toFixed(2)+' if the model is wrong by the same amount everywhere, and x'+fLow.toFixed(2)+' if the US part of the model is right and the difference is in the other markets. '
+    + 'Each planned event in each market is costed with the Hub model: the extra SMS is full coverage (the US 2026 rate) minus what the market already sends today (real Ria BI 2026 data, or the European average where the market is not measured), times the market orders and the Clickatell rate. The model alone gives '+money(cal.modelLiveBaseline)+' for what is live on '+esc2(cal.date)+', against '+money(B.smsYearly)+' really invoiced. '
+    + 'The invoices are not split by country, so two limits are used: x'+fLow.toFixed(2)+' if the model is right, and x'+fHigh.toFixed(2)+' if the US part of the model is right and the whole gap is in the other markets. '
     + 'The range will narrow when Clickatell gives a usage report by country.</div></details>'
     + '</div>';
 }
@@ -4574,10 +4689,11 @@ function renderFxScenario(){
 
   const html = '<div class="calc-wrap">'
     + libStatusHtml()
+    + '<div id="fxs-today"></div>'
     + '<div id="fxs-spend"></div>'
     + '<div style="background:var(--purple-bg);border:1px solid var(--purple);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.75;">'
     + '<div style="font-weight:700;margin-bottom:6px;">What this page answers</div>'
-    + 'Pick any markets and any messages, add them to the list, and see <strong>how much extra SMS would cost per year</strong> if we turn them on in FX Client, sending with Clickatell. Nothing here involves Iterable. You can add different events for different markets, change the billing units of a message to test a shorter text, then export the result as a picture.'
+    + 'First, what we send and pay <strong>today</strong>. Then pick any markets and any messages, add them to the list, and see <strong>how much extra SMS would cost per year</strong> if we turn them on in FX Client, sending with Clickatell. Nothing here involves Iterable. You can add different events for different markets, change the billing units of a message to test a shorter text, then export the result as a picture.'
     + '</div>'
 
     + '<div id="fxs-headline" style="font-size:19px;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:18px;">&nbsp;</div>'
@@ -4718,25 +4834,27 @@ function fxsCompute(){
   const D = window._imData, S = window._fxs;
   const scale = S.scenario === 'full' ? (100/(S.optin||100)) : 1;
   const rows = [];
-  let cost = 0, sms = 0, act = 0, liveSkipped = 0;
+  let cost = 0, sms = 0, act = 0, liveSkipped = 0, todayCost = 0, todaySms = 0;
   Object.keys(S.combos).sort().forEach(function(c){
     const orders = D.ORDERS[c] || 0, rate = D.CLICKATELL[c];
-    const liveIdx = D.LIVE_EVENTS[c] || [];
     const items = S.combos[c].map(function(i){
       const e = D.US_EVENTS[i];
-      const live = liveIdx.indexOf(i) !== -1;
-      const fires = (e.p/100) * orders * scale;
       const u = fxsUnits(i);
-      return {i:i, name:e.n, live:live, sms:fires*u, cost:fires*u*rate};
+      const t = obsTodayRate(D,c,i), f = obsFullRate(D,c,i) * scale;
+      const live = obsIsLive(D,c,i);
+      const tSms = (t/100) * orders * u;
+      const xSms = live ? 0 : Math.max(0, (f - t)/100 * orders * u);
+      return {i:i, name:e.n, live:live, sms:xSms, cost:xSms*rate, todaySms:tSms, todayCost:tSms*rate};
     });
     const extra = items.filter(function(x){ return !x.live; });
-    const r = {c:c, items:items, sms:0, cost:0, n:extra.length};
+    const r = {c:c, items:items, sms:0, cost:0, n:extra.length, todaySms:0, todayCost:0, measured:!!OBS.markets[c]};
     extra.forEach(function(x){ r.sms += x.sms; r.cost += x.cost; });
+    items.forEach(function(x){ r.todaySms += x.todaySms; r.todayCost += x.todayCost; });
     liveSkipped += items.length - extra.length;
-    cost += r.cost; sms += r.sms; act += r.n;
+    cost += r.cost; sms += r.sms; act += r.n; todayCost += r.todayCost; todaySms += r.todaySms;
     rows.push(r);
   });
-  return {rows:rows, cost:cost, sms:sms, act:act, liveSkipped:liveSkipped, scale:scale};
+  return {rows:rows, cost:cost, sms:sms, act:act, liveSkipped:liveSkipped, scale:scale, todayCost:todayCost, todaySms:todaySms};
 }
 function fxsMoney(n){ return '$'+n.toLocaleString('en-US',{maximumFractionDigits: n < 10 ? 2 : 0, minimumFractionDigits: n < 10 && n > 0 ? 2 : 0}); }
 function fxsNum(n){ return n.toLocaleString('en-US',{maximumFractionDigits:0}); }
@@ -4749,7 +4867,8 @@ function fxsRefresh(){
   const hl = document.getElementById('fxs-headline');
   if(!R.rows.length) hl.innerHTML = '<span style="color:var(--muted);font-weight:500;">Pick markets and messages below, then add them to your list.</span>';
   else if(R.act === 0) hl.innerHTML = '<span style="color:var(--muted);font-weight:500;">Everything in your list is already live, so there is no extra SMS cost.</span>';
-  else hl.innerHTML = 'Turning on <strong>'+R.act+' message activation'+(R.act>1?'s':'')+'</strong> in <strong>'+nM+' market'+(nM>1?'s':'')+'</strong> with FX Client and Clickatell would add about <span style="color:var(--purple);">'+fxsMoney(R.cost)+' per year</span> in SMS.';
+  else hl.innerHTML = 'Turning on <strong>'+R.act+' message activation'+(R.act>1?'s':'')+'</strong> in <strong>'+nM+' market'+(nM>1?'s':'')+'</strong> with FX Client and Clickatell would add about <span style="color:var(--purple);">'+fxsMoney(R.cost)+' per year</span> in SMS.'
+    + (R.todayCost > 0 ? ' <span style="font-size:13px;font-weight:500;color:var(--muted);">These markets already send about '+fxsMoney(R.todayCost)+' per year of these messages today.</span>' : '');
 
   document.getElementById('fxs-k-cost').textContent = R.rows.length ? fxsMoney(R.cost) : '—';
   document.getElementById('fxs-k-sms').textContent = R.rows.length ? fxsNum(R.sms) : '—';
@@ -4762,17 +4881,18 @@ function fxsRefresh(){
     const th = 'padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);';
     const sorted = R.rows.slice().sort(function(a,b){ return b.cost - a.cost; });
     list.innerHTML = '<table style="width:100%;border-collapse:collapse;"><tbody>'
-      + '<tr><td style="'+th+'">Market</td><td style="'+th+'">Messages</td><td style="'+th+'text-align:right;">SMS per year</td><td style="'+th+'text-align:right;">Extra cost per year</td><td></td></tr>'
+      + '<tr><td style="'+th+'">Market</td><td style="'+th+'">Messages</td><td style="'+th+'text-align:right;">Today per year</td><td style="'+th+'text-align:right;">Extra SMS per year</td><td style="'+th+'text-align:right;">Extra cost per year</td><td></td></tr>'
       + sorted.map(function(r){
         const chips = r.items.map(function(x){
           return '<span style="display:inline-flex;align-items:center;gap:4px;margin:2px 4px 2px 0;padding:3px 8px;border-radius:12px;font-size:11px;'
             + (x.live ? 'background:var(--border);color:var(--muted);' : 'background:var(--purple-bg);border:1px solid var(--purple);color:var(--text);')+'">'
-            + esc(x.name)+(x.live?' (live)':' &middot; '+fxsMoney(x.cost))
+            + esc(x.name)+(x.live?' (live, '+fxsMoney(x.todayCost)+' today)':' &middot; +'+fxsMoney(x.cost))
             + '<button data-c="'+esc(r.c)+'" data-i="'+x.i+'" onclick="fxsRmEvent(this)" title="Remove" style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:13px;line-height:1;padding:0;">&times;</button></span>';
         }).join('');
         return '<tr style="border-top:1px solid var(--border);vertical-align:top;">'
           + '<td style="padding:8px 10px;font-size:12px;font-weight:600;white-space:nowrap;">'+esc(r.c)+'</td>'
           + '<td style="padding:6px 10px;">'+chips+'</td>'
+          + '<td style="padding:8px 10px;font-size:12px;text-align:right;white-space:nowrap;color:var(--muted);">'+fxsMoney(r.todayCost)+(r.measured ? '' : ' <span style="font-size:10px;">(est.)</span>')+'</td>'
           + '<td style="padding:8px 10px;font-size:12px;text-align:right;white-space:nowrap;">'+fxsNum(r.sms)+'</td>'
           + '<td style="padding:8px 10px;font-size:12px;text-align:right;white-space:nowrap;font-weight:600;">'+fxsMoney(r.cost)+'</td>'
           + '<td style="padding:6px 4px;"><button data-c="'+esc(r.c)+'" onclick="fxsRmCountry(this)" title="Remove market" style="border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;">&times;</button></td></tr>';
@@ -4782,9 +4902,9 @@ function fxsRefresh(){
 
   const note = document.getElementById('fxs-note');
   if(note){
-    if(R.rows.some(function(r){ return r.c !== 'United States'; })){
+    if(R.rows.length){
       note.style.display = 'block';
-      note.innerHTML = '<strong>Estimate for non-US markets.</strong> Event rates and message lengths come from real 2025 US data, applied as a proxy to each market\'s 2025 order volume. The US figure is measured, the rest are modelled.';
+      note.innerHTML = '<strong>Today</strong> is real 2026 data from Ria BI for the 9 measured markets (US, Canada, Australia, France, Spain, Germany, Italy, UK, Belgium) and the European average for the others (marked est.). <strong>Extra</strong> is full coverage (the US 2026 rate) minus what the market sends today.';
     } else note.style.display = 'none';
   }
 
@@ -4869,7 +4989,7 @@ function fxsBuildCanvas(){
 
   g.fillStyle = '#6B6B6B'; g.font = font('400', 11);
   const foot = [
-    'Estimate. Event rates and message length come from real 2025 US data, applied as a proxy to each market\'s 2025 order volume (the US figure is measured).',
+    'Estimate. Extra = full coverage (US 2026 rate) minus what the market sends today (Ria BI 2026, European average where the market is not measured).',
     'Only messages that are not live today are counted. Carrier: Clickatell. This view does not include any Iterable cost.'+(Object.keys(S.units||{}).length ? ' Billing units edited for '+Object.keys(S.units).length+' message'+(Object.keys(S.units).length>1?'s':'')+'.' : '')
   ];
   foot.forEach(function(t,k){ g.fillText(t, PAD, y+30+k*16); });
@@ -4893,9 +5013,9 @@ function fxsExportCsv(){
   const R = fxsCompute();
   if(!R.rows.length) return;
   const q = function(s){ return '"'+String(s).replace(/"/g,'""')+'"'; };
-  const lines = ['Market,Message,Already live,SMS per year,Extra cost per year (USD)'];
+  const lines = ['Market,Message,Already live,Today SMS per year,Today cost per year (USD),Extra SMS per year,Extra cost per year (USD)'];
   R.rows.forEach(function(r){ r.items.forEach(function(x){
-    lines.push([q(r.c), q(x.name), x.live?'yes':'no', Math.round(x.sms), x.live?0:x.cost.toFixed(2)].join(','));
+    lines.push([q(r.c), q(x.name), x.live?'yes':'no', Math.round(x.todaySms), x.todayCost.toFixed(2), Math.round(x.sms), x.cost.toFixed(2)].join(','));
   }); });
   const blob = new Blob([lines.join('\n')], {type:'text/csv'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'fx-client-scenario.csv';
@@ -4928,16 +5048,20 @@ function renderActivation(){
   const money = function(n){ return '$'+(n >= 1000 ? Math.round(n).toLocaleString('en-US') : n.toFixed(n < 10 ? 2 : 0)); };
   const value = function(d){ return Math.min(1, d.live.size / REF); };
   const color = function(v){ if(v <= 0) return 'var(--act-none)'; return 'hsl(187 60% '+(92 - Math.min(1,v)*58)+'%)'; };
-  function evMetrics(d, e){
+  // today = what the market really sends (Ria BI 2026, or the European average). extra = full coverage minus today.
+  function evMetrics(d, e, i){
     if(!d.orders || d.rate === undefined) return null;
-    const vol = (e.p/100) * d.orders;
-    return {vol:vol, cost:vol * e.s * d.rate};
+    const t = obsTodayRate(D, d.name, i), f = obsFullRate(D, d.name, i);
+    const live = obsIsLive(D, d.name, i);
+    const todayVol = (t/100) * d.orders;
+    const extraVol = live ? 0 : Math.max(0, (f - t)/100) * d.orders;
+    return {live:live, todayVol:todayVol, todayCost:todayVol*e.s*d.rate, vol:extraVol, cost:extraVol*e.s*d.rate, measured:!!OBS.markets[d.name]};
   }
 
   document.getElementById('p13-content').innerHTML =
     '<div class="act-wrap">'
     + libStatusHtml()
-    + '<div class="act-intro"><b>What is activated today.</b> Only B&amp;M SMS events that are live in FX Client, for Ria. Each market is compared with the United States ('+REF+' events live). Volumes and costs are estimates, modelled from the 2025 US event rates and each market\'s 2025 orders.</div>'
+    + '<div class="act-intro"><b>What is activated today.</b> Only B&amp;M SMS events that are live in FX Client, for Ria. Each market is compared with the United States ('+REF+' events live). Volumes and costs are real 2026 figures for the 9 measured markets (US, Canada, Australia, France, Spain, Germany, Italy, UK, Belgium) and estimates, from the European average, for the others. Click a market to see what it sends today and what would happen if an event is activated.</div>'
     + '<div class="act-main">'
     + '<section class="act-card act-mapcard">'
     + '<svg id="act-map" viewBox="0 0 960 500" role="img" aria-label="World map of live FX Client SMS events by market"></svg>'
@@ -5025,11 +5149,12 @@ function renderActivation(){
   }
   function renderCountry(){
     const d = DATA[A.selected], n = d.live.size;
-    const rows = EV.map(function(e,i){ return {e:e, on:d.live.has(i), m:evMetrics(d,e)}; });
+    const rows = EV.map(function(e,i){ const m = evMetrics(d,e,i); return {e:e, on:m ? m.live : d.live.has(i), m:m}; });
     const liveRows = rows.filter(function(r){ return r.on; }), offRows = rows.filter(function(r){ return !r.on; });
     const hasCost = d.orders > 0 && d.rate !== undefined;
     const sum = function(arr, k){ return arr.reduce(function(s,r){ return s + (r.m ? r.m[k] : 0); }, 0); };
-    const sent = sum(liveRows,'vol'), cost = sum(liveRows,'cost'), missVol = sum(offRows,'vol'), missCost = sum(offRows,'cost');
+    const sent = sum(rows,'todayVol'), cost = sum(rows,'todayCost'), missVol = sum(rows,'vol'), missCost = sum(rows,'cost');
+    const measured = !!OBS.markets[d.name];
     const shown = rows.filter(function(r){ return A.filter === 'all' || (A.filter === 'live' ? r.on : !r.on); });
     document.getElementById('act-side').innerHTML =
       '<button class="act-back" id="act-back">&larr; World view</button>'
@@ -5039,23 +5164,23 @@ function renderActivation(){
       + '<div class="act-stack"><i style="width:'+(value(d)*100)+'%;background:var(--act-fx)"></i></div>'
       + (hasCost
         ? '<div class="act-kpis">'
-          + '<div class="act-kpi"><b>'+fmt(d.orders)+'</b><span>Orders in 2025</span></div>'
+          + '<div class="act-kpi"><b>'+fmt(d.orders)+'</b><span>Orders per year'+(measured ? ' (2026)' : ' (2025)')+'</span></div>'
           + '<div class="act-kpi"><b>'+n+'</b><span>Events live</span></div>'
-          + '<div class="act-kpi"><b>'+fmt(sent)+'</b><span>SMS sent / year (est.)</span></div>'
-          + '<div class="act-kpi"><b>'+money(cost)+'</b><span>SMS cost / year (est.)</span></div></div>'
+          + '<div class="act-kpi"><b>'+fmt(sent)+'</b><span>SMS today / year'+(measured ? '' : ' (est.)')+'</span></div>'
+          + '<div class="act-kpi"><b>'+money(cost)+'</b><span>SMS cost today / year'+(measured ? '' : ' (est.)')+'</span></div></div>'
         : '<div class="act-callout">No order volume or Clickatell rate on file for this market, so no volume or cost estimate.</div>')
       + (hasCost && offRows.length
-        ? '<div class="act-callout"><b>'+offRows.length+' events not live yet.</b> Turning them all on would add about <b>'+fmt(missVol)+'</b> SMS and <b>'+money(missCost)+'</b> per year (Clickatell rate $'+d.rate.toFixed(4)+' per SMS segment).</div>'
+        ? '<div class="act-callout"><b>'+offRows.length+' events not at full coverage.</b> Turning them all on would add about <b>'+fmt(missVol)+'</b> SMS and <b>'+money(missCost)+'</b> per year on top of today (Clickatell rate $'+d.rate.toFixed(4)+' per SMS segment).</div>'
         : (!offRows.length ? '<div class="act-callout" style="background:#eaf7f0;border-color:#bfe3cf">All reference events are live in this market.</div>' : ''))
       + '<div class="act-chips" role="group" aria-label="Filter events">'
       + [['all','All '+EV.length],['live','Live '+liveRows.length],['off','Not live '+offRows.length]].map(function(x){ return '<button class="act-chip '+(A.filter===x[0]?'on':'')+'" data-f="'+x[0]+'">'+x[1]+'</button>'; }).join('')
       + '</div>'
       + '<div class="act-events">'+(shown.map(function(r){
           return '<div class="act-ev '+(r.on?'':'off')+'"><span class="nm">'+esc(r.e.name || r.e.n)+'</span>'
-            + '<span class="meta">'+(r.m ? (r.on ? fmt(r.m.vol)+' SMS / year, '+money(r.m.cost) : 'Would cost about '+money(r.m.cost)+' / year') : 'No estimate')+' &middot; '+r.e.s+' segment'+(r.e.s>1?'s':'')+'</span>'
-            + '<span class="right">'+(r.on ? '<span class="act-pill fx">FX Client</span>' : '<span class="act-pill off">Not live</span>')+'</span></div>';
+            + '<span class="meta">'+(r.m ? (r.on ? 'Today: '+fmt(r.m.todayVol)+' SMS / year, '+money(r.m.todayCost) : (r.m.todayVol > 0 ? 'Today: '+fmt(r.m.todayVol)+' SMS, '+money(r.m.todayCost)+'. If fully activated: +' : 'Today: none. If activated: +')+fmt(r.m.vol)+' SMS, +'+money(r.m.cost)+' / year') : 'No estimate')+' &middot; '+r.e.s+' segment'+(r.e.s>1?'s':'')+'</span>'
+            + '<span class="right">'+(r.on ? '<span class="act-pill fx">FX Client</span>' : '<span class="act-pill off">'+(r.m && r.m.todayVol > 0 ? 'Partial' : 'Not live')+'</span>')+'</span></div>';
         }).join('') || '<p class="act-sub" style="padding:10px 0">Nothing here.</p>')+'</div>'
-      + '<p class="act-note">Estimates. SMS only. Event rates and message length come from 2025 US data, applied to each market\'s 2025 orders.</p>';
+      + '<p class="act-note">'+(measured ? 'Measured: real 2026 SMS per event from Ria BI (1 Jan to 13 Oct 2026), annualised.' : 'Estimate: no 2026 data for this market, so the European average is used for the live events.')+' If activated = full coverage (US 2026 rate) minus today. SMS only.</p>';
     document.getElementById('act-back').onclick = function(){ select(null); };
     document.querySelectorAll('#act-side .act-chip').forEach(function(b){ b.onclick = function(){ A.filter = b.dataset.f; renderCountry(); }; });
   }
