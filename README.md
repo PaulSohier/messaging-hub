@@ -1,4 +1,4 @@
-# Messaging Hub V5.11.0.0
+# Messaging Hub V5.12.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -14,7 +14,7 @@ Three switches at the top of the sidebar control what you see.
 
 **Audience switcher: B&M or Digital.** For Ria this is a real structural split, B&M messaging is sheet-fed while Digital comes live from Iterable. The same switch is labelled Consumer and Corporate when Xe is selected, and is disabled for now because the Xe data has no such split in it.
 
-**Mode switcher: Messaging, Costs or Activation.** Messaging holds the exploration pages. Costs holds the calculators. Activation holds the map of what is live today. Costs and Activation are Ria B&M only, so the audience switch is hidden in those two modes, and Xe shows a short "Ria B&M only" message there.
+**Mode switcher: Messaging, Costs or Activation.** Messaging holds the exploration pages. Costs holds the calculators. Activation holds the map of what is live today and the weekly activation roadmap. Costs and Activation are Ria B&M only, so the audience switch is hidden in those two modes, and Xe shows a short "Ria B&M only" message there.
 
 ## What is inside
 
@@ -98,6 +98,11 @@ Click a market on the map, or in the ranking list, to zoom in. The side panel th
 
 This page shows FX Client only. There is no Iterable view, and no WhatsApp yet.
 
+**Activation roadmap** (since V5.12.0.0)
+A roadmap of the weekly activations of B&M SMS messages in FX Client, for Ria only. Each column is one activation week (a Tuesday), each row is a region (Europe, Australia, other markets), and each box is a group of events with the markets that go live that week. A box is Planned (dashed), Confirmed (blue) or Live (green) and can show its Jira ticket. A week without a box is still open. The page shows no costs, it is only there to help the team see and decide the order of events and markets.
+
+The page reads `data/activation-roadmap.json` when it loads, so it is changed by editing that file on GitHub, with no code change. The file has four parts: `subtitle`, `weeks` (label and date), `rows` (id, label, sub label, colour) and `items`. An item has a `week` number, a `row` id, a list of `events`, the `markets` text, a `status` (`planned`, `confirmed` or `live`) and an optional `ticket`. Epic: CGD-6667. Week 1: CGD-6668. Week 2: CGD-6669.
+
 ## A note on estimates
 
 The United States is the only market with real behavioural telemetry. Event participation rates and message lengths from the US are applied as a proxy to every other market. Pages that rely on this say so on screen rather than presenting modelled figures as measured ones.
@@ -112,6 +117,7 @@ The United States is the only market with real behavioural telemetry. Event part
 - SMS costs (Twilio): Twilio Order Form 00142240.0, Exhibit A, effective Aug 1, 2025
 - Clickatell billing: 2025 invoices
 - Opt-in data: current rate of 64 percent
+- Activation roadmap: `data/activation-roadmap.json`, edited by hand
 - Global Agent markets: Global Agents file, used for the Ria sending countries filter
 - Iterable contract: Quote Q-15068, Mar 2026 to Mar 2027 renewal
 
