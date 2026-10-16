@@ -57,7 +57,6 @@
       "week": 1,
       "row": "europe",
       "events": [
-        "Transaction Needs Information",
         "Requires Interview"
       ],
       "markets": "UK, ES, FR, IT, DE",
@@ -75,7 +74,6 @@
       "week": 1,
       "row": "australia",
       "events": [
-        "Transaction Needs Information",
         "Requires Interview"
       ],
       "markets": "AU",
@@ -91,10 +89,147 @@
       "events": [
         "Transaction Ready for Pickup"
       ],
-      "markets": "Markets to be defined",
+      "markets": "UK, ES, FR, IT, DE",
       "status": "planned",
       "ticket": "CGD-6669",
-      "marketList": []
+      "marketList": [
+        "France",
+        "Spain",
+        "Germany",
+        "Italy",
+        "United Kingdom"
+      ]
+    },
+    {
+      "week": 2,
+      "row": "australia",
+      "events": [
+        "Transaction Ready for Pickup"
+      ],
+      "markets": "AU",
+      "status": "planned",
+      "ticket": "CGD-6669",
+      "marketList": [
+        "Australia"
+      ]
+    },
+    {
+      "week": 3,
+      "row": "europe",
+      "events": [
+        "Transaction Needs Information",
+        "Transaction Canceled"
+      ],
+      "markets": "UK, ES, FR, IT, DE",
+      "status": "planned",
+      "marketList": [
+        "France",
+        "Spain",
+        "Germany",
+        "Italy",
+        "United Kingdom"
+      ]
+    },
+    {
+      "week": 3,
+      "row": "australia",
+      "events": [
+        "Transaction Needs Information",
+        "Transaction Canceled"
+      ],
+      "markets": "AU",
+      "status": "planned",
+      "marketList": [
+        "Australia"
+      ]
+    },
+    {
+      "week": 4,
+      "row": "europe",
+      "events": [
+        "Transaction Rejected",
+        "Transaction Pick Up Reminder (3 Days)"
+      ],
+      "markets": "UK, ES, FR, IT, DE",
+      "status": "planned",
+      "marketList": [
+        "France",
+        "Spain",
+        "Germany",
+        "Italy",
+        "United Kingdom"
+      ]
+    },
+    {
+      "week": 4,
+      "row": "australia",
+      "events": [
+        "Transaction Rejected",
+        "Transaction Pick Up Reminder (3 Days)"
+      ],
+      "markets": "AU",
+      "status": "planned",
+      "marketList": [
+        "Australia"
+      ]
+    },
+    {
+      "week": 5,
+      "row": "europe",
+      "events": [
+        "Strategic Retail Partners - Available for Refund",
+        "Strategic Retail Partners - Refund Completed"
+      ],
+      "markets": "UK, ES, FR, IT, DE",
+      "status": "planned",
+      "marketList": [
+        "France",
+        "Spain",
+        "Germany",
+        "Italy",
+        "United Kingdom"
+      ]
+    },
+    {
+      "week": 5,
+      "row": "australia",
+      "events": [
+        "Strategic Retail Partners - Available for Refund",
+        "Strategic Retail Partners - Refund Completed"
+      ],
+      "markets": "AU",
+      "status": "planned",
+      "marketList": [
+        "Australia"
+      ]
+    },
+    {
+      "week": 6,
+      "row": "europe",
+      "events": [
+        "Transaction Paid"
+      ],
+      "markets": "UK, ES, FR, IT, DE",
+      "status": "planned",
+      "marketList": [
+        "France",
+        "Spain",
+        "Germany",
+        "Italy",
+        "United Kingdom"
+      ]
+    },
+    {
+      "week": 6,
+      "row": "australia",
+      "events": [
+        "Transaction Paid"
+      ],
+      "markets": "AU",
+      "status": "planned",
+      "marketList": [
+        "Australia"
+      ]
     }
   ]
 }
