@@ -1,10 +1,10 @@
-# Messaging Hub V5.14.0.0
+# Messaging Hub V6.0.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
 ## What is this?
 
-A single-file interactive dashboard that centralises messaging intelligence and cost modeling for Ria and Xe. Built for the CX team to understand what messages are sent, when, to whom, at what cost, and why the numbers say what they say.
+An interactive dashboard (plain HTML, CSS and JavaScript, no build step) that centralises messaging intelligence and cost modeling for Ria and Xe. Built for the CX team to understand what messages are sent, when, to whom, at what cost, and why the numbers say what they say.
 
 ## How the Hub is organised
 
@@ -166,7 +166,7 @@ Sheet structure:
 
 Each of these pages shows a status box at the top: "Synced with the Messages Library" with the time, the number of live SMS messages and markets, what changed compared with the built-in snapshot, and how many live library events are not costed because the cost model has no participation rate for them. If the sheet cannot load, the pages use the values written in the code and say so.
 
-**Still hardcoded in `index.html`:** country rates, order volumes, the 2026 event counts of the 9 measured markets (`OBS` block), participation rates (US 2026 rates, plus the 2025 US counts for older events), Iterable contract figures, the Global Agent country list, and the world map shapes (simplified). Changing any of them means a code edit and a new push. The Opt-in cost impact (by journey) and the Global deployment pages are older models and do not follow the library: the first has its own fixed message counts per journey, and the second use the measured 2025 SMS per order.
+**Still hardcoded in the `js/` files (mostly `js/core/shared-data.js` and `js/core/observed-rates.js`):** country rates, order volumes, the 2026 event counts of the 9 measured markets (`OBS` block), participation rates (US 2026 rates, plus the 2025 US counts for older events), Iterable contract figures, the Global Agent country list, and the world map shapes (simplified). Changing any of them means a code edit and a new push. The Opt-in cost impact (by journey) and the Global deployment pages are older models and do not follow the library: the first has its own fixed message counts per journey, and the second use the measured 2025 SMS per order.
 
 **Message links:** the sheet's `MessageID` column is blank on every row, so per-message share links are built from a mix of title, country, channel, event, recipient, agent and service. That is unique for almost every message. A small number of genuine duplicate rows share a link, which is harmless since they show identical content. Filling in `MessageID` would make this exact.
 
@@ -215,18 +215,38 @@ Needs Power BI tenant-admin rights, so likely IT or the data team rather than CX
 ## Known open items
 
 - **Three Flow Map elements are still hidden.** The Message Library column, the Who Gets It column and the route-count summary line were hidden for a presentation and never restored. They are marked with `TEMP: hidden for CEO presentation` comments in the CSS. Remove the `display:none` on each to bring them back.
-- **The 2026 rates are a snapshot.** They are fixed in the `OBS` block of `index.html` (1 Jan to 13 Oct 2026). Refresh them with new Power BI exports every 2 to 3 months, and tell the team when a measured market activates new events, since the Library does not change "today" there. The planned daily FX Client query would replace this.
+- **The 2026 rates are a snapshot.** They are fixed in the `OBS` block of `js/core/observed-rates.js` (1 Jan to 13 Oct 2026). Refresh them with new Power BI exports every 2 to 3 months, and tell the team when a measured market activates new events, since the Library does not change "today" there. The planned daily FX Client query would replace this.
 - **Activation map is SMS only.** The live events come from the SMS rows of the Messages Library. WhatsApp events are not shown as activated yet.
 - **Some markets have no estimate on the Activation map.** Colombia has live events but no order volume or Clickatell rate on file, so its panel shows no cost. French overseas territories with live events (French Guiana, Guadeloupe, Martinique, Mayotte, Reunion) are not drawn on the map.
 - **Xe has no Consumer and Corporate split.** The audience switch is disabled for Xe because the Xe pull is a single list. Splitting it would mean two separate pulls.
 - **The placeholder preview uses one tracking URL per language.** English messages get the `en-us` tracking page and Spanish ones get `es-us`, detected from the message text (CGD-6561, done). The real link carries a per-customer token, so the live message is longer than the preview shows.
 - **Ria PayID has no sample value**, because its format is unknown. It stays visible as a raw placeholder rather than being filled with something invented.
 
+## Project structure
+
+Since V6.0.0.0 the Hub is split into several files. There is still no build step: GitHub Pages serves the files as they are.
+
+```
+index.html              Page shell (sidebar and page containers), loads the files below
+css/hub.css             All styles
+assets/                 Logos
+js/core/                Shared code: data tables, state, helpers, navigation, sheet sync, observed rates
+js/pages/               One file per page or group of pages (library, journeys, costs, opt-in, activation...)
+js/main.js              Start up: first render and sheet load
+data/                   JSON data read by the pages (Iterable pulls, opt-in, roadmap, map shapes)
+scripts/                Node script used by the Iterable pull workflow
+.github/workflows/      Deploy, PR preview and Iterable pull
+```
+
+The JavaScript files are normal scripts, not modules. They share one global scope, so **the order of the script tags at the end of `index.html` matters**. A file can use anything defined in the files listed above it. When you add a file, add its tag in the right place.
+
+Each JS file starts with a one line comment saying what it contains.
+
 ## How to update the dashboard
 
-Replace `index.html` in this repository. The URL stays the same. GitHub Pages serves the `main` branch directly.
+Change the files in this repository, commit and push to `main`. GitHub Pages serves the `main` branch directly and the URL stays the same.
 
-Each new `index.html` gets a version number (format VX.X.X.X: major, minor, patch, build), which is also shown in the title of this README. Update the number here when you upload a new version.
+Each new version gets a version number (format VX.X.X.X: major, minor, patch, build). Update it in the title of this README and in the `?v=` part of the `css` and `js` links at the bottom and top of `index.html`. That `?v=` value makes browsers load the new files instead of old cached ones.
 
 ## Owner
 
