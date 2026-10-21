@@ -1,4 +1,4 @@
-# Messaging Hub V6.3.0.0
+# Messaging Hub V6.4.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -237,7 +237,9 @@ js/main.js              Start up: first render and sheet load (runs last)
 data/                   JSON data read by the pages (rates, observed 2026 rates, B&M journeys, Iterable pulls, opt-in, roadmap, map shapes)
 scripts/                Node script used by the Iterable pull workflow
 config/                 Settings read by the workflow (Xe journey IDs)
-.github/workflows/      Iterable pull, the only workflow (runs daily)
+tests/                  Smoke test and its fake sheet rows
+package.json            Only used to run the smoke test (one dev dependency)
+.github/workflows/      Iterable pull (daily) and the smoke test
 ```
 
 The JavaScript files are normal scripts, not modules. They share one global scope, so **the order of the list in `js/boot.js` matters**. A file can use anything defined in the files listed above it. When you add a file, add it to that list in the right place. `js/boot.js` first loads the data files into `window.HUB_DATA`, and only then runs the scripts.
@@ -245,6 +247,14 @@ The JavaScript files are normal scripts, not modules. They share one global scop
 Each JS file starts with a one line comment saying what it contains.
 
 To test on your computer, serve the folder instead of double clicking `index.html`, for example with `python -m http.server` in the repository folder and then open `http://localhost:8000`. The Hub reads its data with `fetch`, which browsers block for files opened directly from disk.
+
+## Automatic check
+
+The workflow **Smoke test** runs on every push to `main` and on every pull request. It starts the Hub in a real browser and opens all 22 views (Ria B&M, Ria Digital and Xe). It fails if any page has a JavaScript error, a file is missing or returns an error, a data file is not valid JSON, a page is empty or shows a load error, or a script file is not listed in `js/boot.js`. A red cross on a commit means something is broken. It does not stop the site from being published, because GitHub Pages serves `main` directly, so look at the result after each push.
+
+The test uses a few fake message rows from `tests/fixtures/sheet-rows.json` instead of the real Google Sheet, so it needs no internet and does not read real data. It checks that pages work, not that numbers are right.
+
+To run it on your computer (needs Node.js): `npm ci`, then `npx playwright install chromium`, then `npm test`.
 
 ## How to update the dashboard
 

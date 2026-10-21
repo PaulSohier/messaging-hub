@@ -1,0 +1,31 @@
+name: Smoke test
+
+# Opens every page of the Hub in a real browser and fails on any error.
+# It runs on every push to main and on every pull request. It does not block
+# the publishing of the site (GitHub Pages serves main directly), it shows a
+# red cross on the commit so a problem is seen quickly.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm test
