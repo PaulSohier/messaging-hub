@@ -44,6 +44,9 @@ const NAV_CONFIG = {
 // Costs. The calculators are not in the menu for now: a section with hidden:true is not shown, but its pages
 // still belong to this mode and still open by link (for example ?page=iterable-migration).
 const TOOLS_NAV = [
+  {section:'Calculator', items:[
+    {id:'p15', icon:'', label:'Cost calculator'},
+  ]},
   {section:'Methodology', items:[
     {id:'p7', icon:'', label:'How we calculate this'},
   ]},
@@ -304,5 +307,6 @@ function renderPage(id){
   if(id==='p12') renderFxScenario();
   if(id==='p13') renderActivation();
   if(id==='p14') renderActivationRoadmap();
+  if(id==='p15') renderCostCalculator();
 }
 

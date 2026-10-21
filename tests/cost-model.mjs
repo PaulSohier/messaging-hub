@@ -305,6 +305,70 @@ try {
   same('profile fee: 0 entered is $0, not "Not set"', (await fee({ profiles: 0 })).fee, '$0');
   same('profile fee does not depend on carrier or opt-in', money((await fee({ profiles: 1000000, allow: 0, carrier: 'twilio', scenario: 'full', optin: 20 })).fee), 6000);
 
+  // ── The Cost calculator page (js/pages/cost-calculator.js) ──
+  state.where = 'cost calculator';
+  const calc = (S) => page.evaluate((S) => { const r = ccCompute(window._imData, Object.assign({ mode: 'live', events: [], carrier: 'clickatell', scenario: 'current', optin: 64 }, S)); return JSON.parse(JSON.stringify(r)); }, S);
+  const usEvents = D.LIVE_EVENTS['United States'];
+  const half = allEvents.filter((i) => i % 2 === 0);
+  for (const [name, o] of [
+    ['US live', { markets: US }],
+    ['six markets live', { markets: mix }],
+    ['six markets live, Twilio', { markets: mix, carrier: 'twilio' }],
+    ['six markets, everyone opts in', { markets: mix, scenario: 'full', optin: 64 }],
+    ['all markets, US messages everywhere', { markets: Object.keys(D.ORDERS), mode: 'pick', events: usEvents }],
+    ['six markets, half of the messages, Twilio, 40% opt-in', { markets: mix, mode: 'pick', events: half, carrier: 'twilio', scenario: 'full', optin: 40 }],
+  ]) {
+    const r = await calc(o);
+    const ora = { scope: o.markets, kind: o.mode === 'pick' ? 'custom' : 'live', events: o.events || [], carrier: o.carrier, scenario: o.scenario, optin: o.optin || 64 };
+    close('calculator "' + name + '": scenario cost matches the independent calculation', r.tot.scenCost, scopeCost(ora), 1e-9);
+    close('calculator "' + name + '": today cost matches the independent calculation', r.tot.todayCost, scopeCost({ ...ora, kind: 'live', scenario: 'current' }), 1e-9);
+    close('calculator "' + name + '": market rows add up to the total', r.rows.reduce((a, x) => a + x.scenCost, 0), r.tot.scenCost, 1e-9);
+    close('calculator "' + name + '": message rows add up to the total', r.evRows.reduce((a, x) => a + x.scenCost, 0), r.tot.scenCost, 1e-9);
+    close('calculator "' + name + '": message rows add up to today total', r.evRows.reduce((a, x) => a + x.todayCost, 0), r.tot.todayCost, 1e-9);
+  }
+  {
+    // "What we pay today" for all markets is the same number the Hub model shows elsewhere
+    const r = await calc({ markets: Object.keys(D.ORDERS) });
+    close('calculator "what we pay today" = the model total of the Activation pages', r.tot.todayCost, (await page.evaluate(() => obsModelTotal(window._imData))).all, 1e-9);
+    same('calculator "what we pay today": scenario equals today when nothing changes', Math.round(r.tot.scenCost), Math.round(r.tot.todayCost));
+    // same question asked to the older simulator page gives the same answer
+    const sim = money((await drive({ scope: mix, kind: 'custom', events: half, scenario: 'full', optin: 64 })).carrier);
+    const cc = await calc({ markets: mix, mode: 'pick', events: half, scenario: 'full', optin: 64 });
+    close('calculator and the Iterable simulator agree for the same inputs', Math.round(cc.tot.scenCost), sim, 1e-12);
+    // markets without a Twilio rate are left out and named
+    const tw = await calc({ markets: Object.keys(D.ORDERS), carrier: 'twilio' });
+    const noTw = Object.keys(D.ORDERS).filter((c) => D.TWILIO[c] === undefined && D.ORDERS[c] > 0);
+    same('calculator names the markets without a Twilio rate', tw.excluded.slice().sort(), noTw.slice().sort());
+    // the carrier check is the same scenario priced with both carriers on the markets both cover
+    const cmp = await calc({ markets: mix, scenario: 'full', optin: 64 });
+    const both = mix.filter((c) => D.CLICKATELL[c] !== undefined && D.TWILIO[c] !== undefined);
+    close('carrier check, Clickatell side', cmp.compare.clickatell, scopeCost({ scope: both, kind: 'live', scenario: 'full', optin: 64 }), 1e-9);
+    close('carrier check, Twilio side', cmp.compare.twilio, scopeCost({ scope: both, kind: 'live', scenario: 'full', optin: 64, carrier: 'twilio' }), 1e-9);
+    // Iterable fee: same rule as the simulator
+    same('calculator profile fee: 3M above the allowance = $18,000', await page.evaluate(() => ccProfileFee(10000000, 45000000, 52000000, 0.5).cost), 18000);
+    same('calculator profile fee: not entered = $0', await page.evaluate(() => ccProfileFee(null, 0, 52000000, 0.5).cost), 0);
+    same('calculator profile fee: at the allowance = $0', await page.evaluate(() => ccProfileFee(2000000, 50000000, 52000000, 0.5).cost), 0);
+  }
+  {
+    // The page itself: quick starts fill the controls and the numbers show
+    await page.evaluate(() => renderCostCalculator());
+    const shown = () => page.evaluate(() => ({ today: document.getElementById('cc-k-today').textContent, scen: document.getElementById('cc-k-scen').textContent, head: document.getElementById('cc-headline').innerText, rows: document.querySelectorAll('#cc-by-market tr').length }));
+    await page.evaluate(() => ccPreset('today'));
+    let v = await shown();
+    same('quick start "What we pay today": today = scenario on screen', v.today, v.scen);
+    yes('quick start "What we pay today": one row per market with a rate + header', v.rows > 20, 'rows: ' + v.rows);
+    await page.evaluate(() => ccPreset('optin'));
+    const v2 = await shown();
+    yes('quick start "If everyone opted in": scenario is higher than today', money(v2.scen) > money(v2.today), JSON.stringify(v2));
+    await page.evaluate(() => ccPreset('twilio'));
+    same('quick start "Switch to Twilio": the carrier is Twilio', await page.evaluate(() => document.getElementById('cc-carrier').value), 'twilio');
+    await page.evaluate(() => ccPreset('global'));
+    const v3 = await shown();
+    yes('quick start "Global deployment": costs more than today', money(v3.scen) > money(v3.today), JSON.stringify(v3));
+    await page.evaluate(() => { ccMarkets('none'); });
+    yes('no market picked: the page asks for one', /at least one market/.test((await shown()).head));
+  }
+
   state.where = 'model data';
   yes('every billing unit is a whole number of 1 or more', D.US_EVENTS.every((e) => Number.isInteger(e.s) && e.s >= 1), JSON.stringify(D.US_EVENTS.filter((e) => !(Number.isInteger(e.s) && e.s >= 1))));
   yes('every event rate is 0 or more', D.US_EVENTS.every((e) => typeof e.p === 'number' && e.p >= 0));

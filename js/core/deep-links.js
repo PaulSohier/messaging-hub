@@ -19,7 +19,8 @@ const PAGE_META = {
   p11: {slug:'iterable-migration',       title:'Iterable Migration'},
   p12: {slug:'fx-client-activations',    title:'FX Client Activations'},
   p13: {slug:'activation-map',           title:'SMS activation map'},
-  p14: {slug:'activation-roadmap',       title:'Activation roadmap'}
+  p14: {slug:'activation-roadmap',       title:'Activation roadmap'},
+  p15: {slug:'cost-calculator',          title:'Cost calculator'}
 };
 
 // 'iterable-migration' or the old 'p11' gives 'p11'. Unknown names give null.

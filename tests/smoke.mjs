@@ -77,6 +77,8 @@ try {
   if (costBadge !== 'ok') fail('[p11] the cost page badge should be green when synced, it is ' + costBadge);
   await open('?page=sms-costs');
   if (await badge('p3') !== null) fail('[p3] the older cost pages should have no badge');
+  await open('?page=cost-calculator');
+  if (await badge('p15') !== 'ok') fail('[p15] the Cost calculator badge should be green when synced, it is ' + await badge('p15'));
   await open('?page=fx-client-activations');
   if (await badge('p12') !== 'ok') fail('[p12] the FX Client Activations badge should be green when synced, it is ' + await badge('p12'));
 
@@ -95,7 +97,7 @@ try {
   const menu = async (mode) => { await page.evaluate((m) => window.setHubMode(m), mode); await page.waitForTimeout(300); return page.evaluate(() => Array.from(document.querySelectorAll('#sb-nav .nav-tab')).map((a) => a.dataset.tab)); };
   await open('');
   const costsMenu = await menu('tools'), actMenu = await menu('activation');
-  if (JSON.stringify(costsMenu) !== JSON.stringify(['p7'])) fail('[menus] the Costs menu should only show "How we calculate this" for now, it shows ' + JSON.stringify(costsMenu));
+  if (JSON.stringify(costsMenu) !== JSON.stringify(['p15', 'p7'])) fail('[menus] the Costs menu should show the Cost calculator and "How we calculate this", it shows ' + JSON.stringify(costsMenu));
   if (JSON.stringify(actMenu) !== JSON.stringify(['p13', 'p14', 'p12'])) fail('[menus] the Activation menu should show the map, the roadmap and FX Client Activations, it shows ' + JSON.stringify(actMenu));
 
   // Links: every page has its own readable address, Back and Forward work, old links still open
@@ -111,7 +113,7 @@ try {
   if (!hrefs.length || hrefs.some((h) => !/^A .*\?page=[a-z-]+/.test(h))) fail('[links] every menu item should be a link with its own address, found ' + JSON.stringify(hrefs.slice(0, 3)));
   if (await page.evaluate(() => navLinkClick({ ctrlKey: true }, 'p7', null)) !== true) fail('[links] Ctrl+click on a menu item must open a new tab (the link must not be blocked)');
   v = await view();
-  if (!v.url.includes('page=methodology') || v.active !== 'p7') fail('[links] the Costs mode should open How we calculate this at ?page=methodology, it is ' + v.url + ' (' + v.active + ')');
+  if (!v.url.includes('page=cost-calculator') || v.active !== 'p15') fail('[links] the Costs mode should open the Cost calculator at ?page=cost-calculator, it is ' + v.url + ' (' + v.active + ')');
   await page.evaluate(() => window.setHubMode('activation')); await page.waitForTimeout(300);
   await page.locator('#sb-nav .nav-tab[data-tab="p12"]').evaluate((e) => e.click()); await page.waitForTimeout(500);
   v = await view();
@@ -122,13 +124,13 @@ try {
   if (v.active !== 'p13') fail('[links] Back from FX Client Activations should return to the previous page (SMS activation map), it shows ' + v.active + ' at ' + v.url);
   await page.goBack(); await page.waitForTimeout(600);
   v = await view();
-  if (v.active !== 'p7') fail('[links] Back should return to How we calculate this, it shows ' + v.active + ' at ' + v.url);
+  if (v.active !== 'p15') fail('[links] Back should return to the Cost calculator, it shows ' + v.active + ' at ' + v.url);
   await page.goBack(); await page.waitForTimeout(600);
   v = await view();
   if (v.active !== 'p0' || v.url !== '/index.html') fail('[links] Back should return to the start page, it shows ' + v.active + ' at ' + v.url);
   await page.goForward(); await page.waitForTimeout(600);
   v = await view();
-  if (v.active !== 'p7') fail('[links] Forward should go to How we calculate this, it shows ' + v.active);
+  if (v.active !== 'p15') fail('[links] Forward should go to the Cost calculator, it shows ' + v.active);
   await open('?tab=p11');
   v = await view();
   if (v.active !== 'p11' || !v.url.includes('page=iterable-migration') || v.url.includes('tab=')) fail('[links] an old link (?tab=p11) should open the page and turn into the readable link, it is ' + v.url + ' (' + v.active + ')');
