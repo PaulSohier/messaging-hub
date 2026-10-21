@@ -75,6 +75,49 @@ try {
   const costBadge = await badge('p11');
   if (costBadge !== 'ok') fail('[p11] the cost page badge should be green when synced, it is ' + costBadge);
   if (await badge('p3') !== null) fail('[p3] the older cost pages should have no badge');
+
+  // Links: every page has its own readable address, Back and Forward work, old links still open
+  state.where = 'links';
+  const view = () => page.evaluate(() => ({ url: location.pathname + location.search, active: (document.querySelector('.page.active') || {}).id, title: document.title }));
+  const open = async (q) => { await page.goto(base + '/index.html' + q); await page.waitForFunction(() => typeof window.setHubMode === 'function' && document.querySelectorAll('#sb-nav .nav-tab').length > 0, null, { timeout: 15000 }); await page.waitForTimeout(700); };
+  const slugs = await page.evaluate(() => Array.from(document.querySelectorAll('.page')).filter((p) => p.id !== 'xe-placeholder').map((p) => ({ id: p.id, slug: (PAGE_META[p.id] || {}).slug })));
+  for (const x of slugs) if (!x.slug) fail('[' + x.id + '] has no readable link name in PAGE_META (js/core/deep-links.js)');
+  if (new Set(slugs.map((x) => x.slug)).size !== slugs.length) fail('two pages have the same link name in PAGE_META');
+  await open('');
+  let v = await view();
+  if (v.url !== '/index.html') fail('[links] the start page should have a clean address, it is ' + v.url);
+  await page.evaluate(() => window.setHubMode('tools')); await page.waitForTimeout(300);
+  const hrefs = await page.evaluate(() => Array.from(document.querySelectorAll('#sb-nav .nav-tab')).map((a) => a.tagName + ' ' + a.getAttribute('href')));
+  if (!hrefs.length || hrefs.some((h) => !/^A .*\?page=[a-z-]+/.test(h))) fail('[links] every menu item should be a link with its own address, found ' + JSON.stringify(hrefs.slice(0, 3)));
+  if (await page.evaluate(() => navLinkClick({ ctrlKey: true }, 'p11', null)) !== true) fail('[links] Ctrl+click on a menu item must open a new tab (the link must not be blocked)');
+  await page.locator('#sb-nav .nav-tab[data-tab="p11"]').evaluate((e) => e.click()); await page.waitForTimeout(500);
+  v = await view();
+  if (!v.url.includes('page=iterable-migration') || v.active !== 'p11') fail('[links] opening Iterable Migration should give ?page=iterable-migration, it is ' + v.url + ' (' + v.active + ')');
+  if (!v.title.startsWith('Iterable Migration')) fail('[links] the browser tab title should name the page, it is "' + v.title + '"');
+  await page.goBack(); await page.waitForTimeout(600);
+  v = await view();
+  if (v.active !== 'p9') fail('[links] Back from Iterable Migration should return to the previous page (Full Opt-in Impact), it shows ' + v.active + ' at ' + v.url);
+  await page.goBack(); await page.waitForTimeout(600);
+  v = await view();
+  if (v.active !== 'p0' || v.url !== '/index.html') fail('[links] Back should return to the start page, it shows ' + v.active + ' at ' + v.url);
+  await page.goForward(); await page.waitForTimeout(600);
+  v = await view();
+  if (v.active !== 'p9') fail('[links] Forward should go to Full Opt-in Impact, it shows ' + v.active);
+  await open('?tab=p11');
+  v = await view();
+  if (v.active !== 'p11' || !v.url.includes('page=iterable-migration') || v.url.includes('tab=')) fail('[links] an old link (?tab=p11) should open the page and turn into the readable link, it is ' + v.url + ' (' + v.active + ')');
+  await open('?page=customer-journeys&brand=xe');
+  v = await view();
+  if (v.active !== 'p2' || !v.url.includes('brand=xe')) fail('[links] a link with brand=xe should open the Xe journeys, it is ' + v.url + ' (' + v.active + ')');
+  await open('?page=opt-in-rates&aud=digital');
+  v = await view();
+  if (v.active !== 'p8' || !v.url.includes('aud=digital')) fail('[links] a link with aud=digital should keep Digital, it is ' + v.url);
+  await open('?tab=p1&msg=abc123');
+  v = await view();
+  if (v.active !== 'p1') fail('[links] an old shared message link (?tab=p1&msg=...) should open the Messages Library, it shows ' + v.active);
+  await open('?page=does-not-exist');
+  v = await view();
+  if (v.active !== 'p0') fail('[links] an unknown page name should open the start page, it shows ' + v.active);
 } catch (e) {
   fail('the test stopped early: ' + String(e.message).split('\n')[0].slice(0, 200));
 } finally {

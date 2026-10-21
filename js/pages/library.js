@@ -44,7 +44,7 @@ function msgShareKey(m){
 function shareMessage(ev, key){
   ev.stopPropagation();
   const params = new URLSearchParams();
-  params.set('tab','p1');
+  params.set('page','messages-library');
   params.set('msg', key);
   const url = window.location.origin + window.location.pathname + '?' + params.toString();
   const btn = ev.currentTarget;
@@ -62,8 +62,8 @@ function shareMessage(ev, key){
 }
 
 function jumpToSharedMessage(){
-  const params = new URLSearchParams(window.location.search);
-  const key = params.get('msg');
+  const key = window._pendingMsg;   // read from the link at start up
+  window._pendingMsg = null;
   if(!key) return;
   if(activeTab !== 'p1'){
     activeTab = 'p1';
@@ -71,6 +71,7 @@ function jumpToSharedMessage(){
   }
   activeIntent = 'all';
   renderPage('p1');
+  updateURLState('replace');   // the message is shown, so it leaves the link
   requestAnimationFrame(function(){
     const target = document.querySelector('.msg-item[data-msgkey="'+key+'"]');
     if(!target) return;

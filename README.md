@@ -1,4 +1,4 @@
-# Messaging Hub V6.6.1.0
+# Messaging Hub V6.7.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -246,6 +246,8 @@ The JavaScript files are normal scripts, not modules. They share one global scop
 
 Each JS file starts with a one line comment saying what it contains.
 
+**Links and the Back button.** Every page has its own readable link, for example `index.html?page=iterable-migration`. Other parts of the view are added when they apply: `brand=xe`, `aud=digital`, `intent=...`, and on the flow map `event=...` and `country=...` (the default country stays out of the link). The names are listed in `PAGE_META` in `js/core/deep-links.js`, and every new page needs an entry there. Moving to another page, mode, brand or audience adds a browser history entry, so Back and Forward work. Changing a filter changes the link without adding an entry. The menu items are real links, so "open in new tab" and "copy link" work. The browser tab title shows the page name. **Old links keep working:** `?tab=p11` opens the same page and is rewritten to the readable form, and share links of messages (`?tab=p1&msg=...`) still jump to the message. An unknown page name opens the start page. The smoke test checks all of this.
+
 **Page header and status badge.** Every page starts with the same header: `<div class="page-head"><h1 class="page-title">Title</h1><div class="status-slot" data-status="KEY"></div></div>`. There is no grey sentence under or next to the title. The slot at the right holds one status badge, filled by `setStatus(KEY, {level, label, details})` in `js/core/status-badge.js`. Levels: `ok` (green), `warn` (orange), `error` (red), `loading` (grey). If a status has `details`, they open below the badge on hover, keyboard focus or tap; the library badge has none. Keys in use: `library` (Message flow map, Messages Library), `cost` (Full Opt-in Impact, Iterable Migration, FX Client Activations, SMS activation map), `journeys` (date of the Iterable pull), `optin` (date of the latest opt-in capture). A page without a data source has no slot. The smoke test checks that every page has exactly one h1 header and no grey note, and that the library badge is green when synced and red when offline, and that badges with details open downward.
 
 To test on your computer, serve the folder instead of double clicking `index.html`, for example with `python -m http.server` in the repository folder and then open `http://localhost:8000`. The Hub reads its data with `fetch`, which browsers block for files opened directly from disk.
@@ -254,7 +256,7 @@ To test on your computer, serve the folder instead of double clicking `index.htm
 
 The workflow **Smoke test** runs on every push to `main` and on every pull request. It runs two tests, one after the other. A red cross on a commit means something is broken. It does not stop the site from being published, because GitHub Pages serves `main` directly, so look at the result after each push.
 
-**1. Smoke test** (`tests/smoke.mjs`). It starts the Hub in a real browser and opens all 22 views (Ria B&M, Ria Digital and Xe). It fails if any page has a JavaScript error, a file is missing or returns an error, a data file is not valid JSON, a page is empty or shows a load error, or a script file is not listed in `js/boot.js`. It also checks the page header and the status badge (see Project structure). It checks that pages work, not that numbers are right.
+**1. Smoke test** (`tests/smoke.mjs`). It starts the Hub in a real browser and opens all 22 views (Ria B&M, Ria Digital and Xe). It fails if any page has a JavaScript error, a file is missing or returns an error, a data file is not valid JSON, a page is empty or shows a load error, or a script file is not listed in `js/boot.js`. It also checks the page header, the status badge, and the links and the Back button (see Project structure). It checks that pages work, not that numbers are right.
 
 **2. Cost model test** (`tests/cost-model.mjs`). It checks the numbers behind the cost pages:
 - Billing units: 160 characters = 1 unit, 161 = 2, and the most common value of the live US messages wins (a tie takes the lower one).

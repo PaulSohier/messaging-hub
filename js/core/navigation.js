@@ -96,8 +96,8 @@ function renderNavSections(sections){
       html += '<div class="sb-section"><div class="sb-section-label">'+sec.section+'</div>';
     }
     sec.items.forEach(function(item){
-      html += '<div class="nav-tab" data-tab="'+item.id+'" onclick="switchTab(\''+item.id+'\',this)">'+item.label
-        + (item.badge ? ' <span class="nbadge" id="'+item.badge+'"></span>' : '') + '</div>';
+      html += '<a class="nav-tab" data-tab="'+item.id+'" href="'+buildViewURL(item.id, true)+'" onclick="return navLinkClick(event,\''+item.id+'\',this)">'+item.label
+        + (item.badge ? ' <span class="nbadge" id="'+item.badge+'"></span>' : '') + '</a>';
     });
     html += sec.collapsed ? '</div></div>' : '</div>';
   });
@@ -106,6 +106,14 @@ function renderNavSections(sections){
   if(validIds.indexOf(activeTab) === -1){
     activeTab = validIds[0] || 'p0';
   }
+}
+
+// A menu item is a real link, so "open in new tab" and "copy link" work. A normal click stays in the page.
+function navLinkClick(e, id, el){
+  if(e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button === 1) return true;
+  e.preventDefault();
+  switchTab(id, el);
+  return false;
 }
 
 function toggleNavGroup(el){
@@ -173,7 +181,7 @@ window.setHubMode = function(mode){
     activateNavTabFor(activeTab);
     renderPage(activeTab);
   }
-  updateURLState();
+  updateURLState('push');
 };
 
 function setStructuralAudience(aud){
@@ -188,7 +196,7 @@ function setStructuralAudience(aud){
   window._flowState = {event:'all', country: aud==='digital' ? 'Digital — Global' : 'United States'};
   activateNavTabFor(activeTab);
   renderPage(activeTab);
-  updateURLState();
+  updateURLState('push');
 }
 
 function setBrand(brand){
@@ -216,7 +224,7 @@ function setBrand(brand){
       renderPage('p2');
     }
   }
-  updateURLState();
+  updateURLState('push');
 }
 
 function updateAudienceLabels(brand){
@@ -259,7 +267,7 @@ function setIntent(key, el){
   document.querySelectorAll('.intent-pill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   renderPage(activeTab);
-  updateURLState();
+  updateURLState('replace');
 }
 
 /* ── TAB SWITCHING ── */
@@ -276,7 +284,7 @@ function switchTab(id, el){
   if(intentBar) intentBar.style.display = showBars ? 'flex' : 'none';
   if(audienceBar) audienceBar.style.display = showBars ? 'flex' : 'none';
   renderPage(id);
-  updateURLState();
+  updateURLState('push');
 }
 
 function renderPage(id){

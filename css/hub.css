@@ -64,6 +64,8 @@ body.brand-xe{--orange:#1B57D6;--orange-bg:#E8EEFB;--orange-dim:#1846AD;--purple
 .sb-collapsible:hover{color:rgba(255,255,255,.7);}
 
 .nav-tab{padding:9px 12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.7);cursor:pointer;border-radius:8px;margin-bottom:2px;white-space:nowrap;display:flex;align-items:center;gap:9px;user-select:none;border-left:3px solid transparent;transition:background .15s,color .15s;}
+.nav-tab{text-decoration:none;}
+.nav-tab:focus-visible{outline:2px solid #fff;outline-offset:-2px;}
 .nav-tab:hover{background:rgba(255,255,255,.07);color:#fff;}
 .nav-tab.active{background:rgba(255,255,255,.2);color:#fff;border-left-color:#fff;font-weight:600;}
 .nbadge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);margin-left:auto;}
