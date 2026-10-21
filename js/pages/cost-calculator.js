@@ -157,6 +157,10 @@ function renderCostCalculator(){
   document.getElementById('p15-content').innerHTML = html;
   ccWrite(S0);
   ccRefresh();
+  if(window._pendingPreset){   // a Home button asked for a quick start
+    const n = window._pendingPreset; window._pendingPreset = null;
+    if(['today','optin','twilio','global'].indexOf(n) !== -1) ccPreset(n);
+  }
 }
 
 // Put a state into the controls

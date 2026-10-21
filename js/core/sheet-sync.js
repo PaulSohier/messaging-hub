@@ -87,7 +87,8 @@ function libApplyToModel(EV, LIVE){
   });
   Object.keys(before).forEach(function(c){ if(!LIVE[c]) ch.push(c+': '+before[c].map(function(i){ return '- '+EV[i].n; }).join(', ')); });
   LIB.changes = ch;
-  if(typeof refreshLibraryStatus === 'function') refreshLibraryStatus();   // the badge lists what changed (the unit tests load this file without the page)
+  if(typeof refreshLibraryStatus === 'function') refreshLibraryStatus();
+  if(typeof refreshHome === 'function' && activeTab === 'p16') refreshHome();   // the Home numbers follow the library   // the badge lists what changed (the unit tests load this file without the page)
 }
 
 function libUnits(name, fallback){ return (LIB.synced && LIB.units[name]) || fallback; }

@@ -83,7 +83,7 @@ function navFirstVisible(sections){
 }
 const TOOLS_PAGE_IDS = navPageIds(TOOLS_NAV);
 const ACTIVATION_PAGE_IDS = navPageIds(ACTIVATION_NAV);
-let hubMode = 'explore'; // 'explore', 'tools' or 'activation' — derived from the deep-linked tab at init, see INIT block
+let hubMode = 'home'; // 'home', 'explore', 'tools' or 'activation' — derived from the deep-linked tab at init, see INIT block
 
 function renderNavSections(sections){
   const nav = document.getElementById('sb-nav');
@@ -132,6 +132,7 @@ function toggleNavGroup(el){
 
 function renderSidebarNav(){
   const nav = document.getElementById('sb-nav');
+  if(hubMode === 'home'){ nav.innerHTML = ''; return; }   // the Home page has no menu, its search and buttons lead to the pages
   // Tools are Ria-specific for now, so Xe shows the same "not built yet" note
   // in Tools mode as it does in Explore — check brand before mode.
   if(activeBrand === 'xe'){
@@ -157,12 +158,21 @@ function renderSidebarNav(){
   renderNavSections(sections);
 }
 
+// Shows the mode in the three-way switch and the audience switch
+function setHubModeLook(){
+  document.querySelectorAll('#hub-mode-toggle .brand-toggle-opt').forEach(function(b){ b.classList.toggle('active', b.dataset.mode === hubMode); });
+  const t = document.getElementById('hub-mode-toggle');
+  if(t){ t.classList.toggle('tools-active', hubMode === 'tools'); t.classList.toggle('activation-active', hubMode === 'activation'); t.classList.toggle('home-active', hubMode === 'home'); }
+  const a = document.getElementById('audience-switcher'); if(a) a.style.display = hubMode === 'explore' ? 'flex' : 'none';
+}
+
 window.setHubMode = function(mode){
   if(hubMode === mode) return;
   hubMode = mode;
   document.querySelectorAll('#hub-mode-toggle .brand-toggle-opt').forEach(function(b){ b.classList.toggle('active', b.dataset.mode===mode); });
   const hubToggle = document.getElementById('hub-mode-toggle');
   if(hubToggle) hubToggle.classList.toggle('tools-active', mode === 'tools');
+  if(hubToggle) hubToggle.classList.toggle('home-active', mode === 'home');
   if(hubToggle) hubToggle.classList.toggle('activation-active', mode === 'activation');
 
   // Audience (B&M/Digital) doesn't apply to Tools — hide it there. The Ria/Xe
@@ -181,6 +191,7 @@ window.setHubMode = function(mode){
       renderPage('p2');
     }
   } else {
+    if(mode === 'explore' && navPageIds(NAV_CONFIG[activeAudience] || NAV_CONFIG.bm).indexOf(activeTab) === -1) activeTab = navFirstVisible(NAV_CONFIG[activeAudience] || NAV_CONFIG.bm);
     if(mode === 'tools' && TOOLS_PAGE_IDS.indexOf(activeTab) === -1) activeTab = navFirstVisible(TOOLS_NAV);
     if(mode === 'activation' && ACTIVATION_PAGE_IDS.indexOf(activeTab) === -1) activeTab = navFirstVisible(ACTIVATION_NAV);
     activateNavTabFor(activeTab);
@@ -206,6 +217,7 @@ function setStructuralAudience(aud){
 
 function setBrand(brand){
   activeBrand = brand;
+  if(brand === 'xe' && hubMode === 'home'){ hubMode = 'explore'; setHubModeLook(); }   // Xe has no Home page
   document.body.classList.toggle('brand-xe', brand === 'xe');
   document.querySelectorAll('#brand-toggle .brand-toggle-opt').forEach(function(b){ b.classList.toggle('active', b.dataset.brand===brand); });
   const toggle = document.getElementById('brand-toggle');
@@ -308,5 +320,6 @@ function renderPage(id){
   if(id==='p13') renderActivation();
   if(id==='p14') renderActivationRoadmap();
   if(id==='p15') renderCostCalculator();
+  if(id==='p16') renderHome();
 }
 

@@ -37,7 +37,7 @@ export async function openHub({ base, sheet = 'fixture' }) {
   const note = (msg) => { problems.push(msg); console.log('FAIL  ' + msg); };
   page.on('pageerror', (e) => note('[' + state.where + '] JavaScript error: ' + String(e.message).slice(0, 200)));
   page.on('console', (m) => { if (m.type() === 'error' && !isFont(m.location().url || '') && !/Failed to load resource/.test(m.text())) note('[' + state.where + '] console error: ' + m.text().slice(0, 200)); });
-  page.on('requestfailed', (r) => { if (!isFont(r.url()) && !(sheet === 'fail' && r.url().includes('docs.google.com'))) note('[' + state.where + '] request failed: ' + r.url()); });
+  page.on('requestfailed', (r) => { if (!isFont(r.url()) && !/ABORTED/.test((r.failure() || {}).errorText || '') && !(sheet === 'fail' && r.url().includes('docs.google.com'))) note('[' + state.where + '] request failed: ' + r.url()); });
   page.on('response', (r) => { if (r.url().startsWith(base) && r.status() >= 400) note('[' + state.where + '] HTTP ' + r.status() + ' for ' + r.url().replace(base, '')); });
   const body = fixtureSheetBody();
   await page.route('**/*', (route) => {
@@ -47,7 +47,7 @@ export async function openHub({ base, sheet = 'fixture' }) {
     return route.continue();
   });
   await page.goto(base + '/index.html');
-  await page.waitForFunction(() => typeof window.setHubMode === 'function' && document.querySelectorAll('#sb-nav .nav-tab').length > 0, null, { timeout: 15000 })
+  await page.waitForFunction(() => typeof window.setHubMode === 'function' && document.querySelectorAll('#sb-nav .nav-tab, #p16-content .home-wrap').length > 0, null, { timeout: 15000 })
     .catch(() => note('the Hub did not start (no menu after 15 seconds)'));
   await page.waitForTimeout(1500);
   return { page, browser, problems, state, note };

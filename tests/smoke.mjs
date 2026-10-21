@@ -69,7 +69,7 @@ try {
   }
   const badge = (id) => page.evaluate((id) => { const b = document.querySelector('#' + id + ' .hub-status'); return b ? b.className.replace('hub-status ', '').replace('hub-status--', '') : null; }, id);
   const view = () => page.evaluate(() => ({ url: location.pathname + location.search, active: (document.querySelector('.page.active') || {}).id, title: document.title }));
-  const open = async (q) => { await page.goto(base + '/index.html' + q); await page.waitForFunction(() => typeof window.setHubMode === 'function' && document.querySelectorAll('#sb-nav .nav-tab').length > 0, null, { timeout: 15000 }); await page.waitForTimeout(700); };
+  const open = async (q) => { await page.goto(base + '/index.html' + q); await page.waitForFunction(() => typeof window.setHubMode === 'function' && document.querySelectorAll('#sb-nav .nav-tab, #p16-content .home-wrap').length > 0, null, { timeout: 15000 }); await page.waitForTimeout(700); };
   await page.evaluate(() => { window.setBrand('ria'); window.setHubMode('explore'); }); await page.waitForTimeout(400);
   if (await badge('p0') !== 'ok') fail('[p0] the Messages Library badge should be green when the sheet is synced, it is ' + await badge('p0'));
   await open('?page=iterable-migration');
@@ -127,7 +127,7 @@ try {
   if (v.active !== 'p15') fail('[links] Back should return to the Cost calculator, it shows ' + v.active + ' at ' + v.url);
   await page.goBack(); await page.waitForTimeout(600);
   v = await view();
-  if (v.active !== 'p0' || v.url !== '/index.html') fail('[links] Back should return to the start page, it shows ' + v.active + ' at ' + v.url);
+  if (v.active !== 'p16' || v.url !== '/index.html') fail('[links] Back should return to the start page, it shows ' + v.active + ' at ' + v.url);
   await page.goForward(); await page.waitForTimeout(600);
   v = await view();
   if (v.active !== 'p15') fail('[links] Forward should go to the Cost calculator, it shows ' + v.active);
@@ -145,7 +145,58 @@ try {
   if (v.active !== 'p1') fail('[links] an old shared message link (?tab=p1&msg=...) should open the Messages Library, it shows ' + v.active);
   await open('?page=does-not-exist');
   v = await view();
-  if (v.active !== 'p0') fail('[links] an unknown page name should open the start page, it shows ' + v.active);
+  if (v.active !== 'p16') fail('[links] an unknown page name should open the start page, it shows ' + v.active);
+
+  // Home page: four numbers, search, question buttons, "Messaging Hub" leads home
+  state.where = 'home';
+  await open('');
+  const homeInfo = await page.evaluate(() => ({
+    active: document.querySelector('.page.active').id,
+    modes: Array.from(document.querySelectorAll('#hub-mode-toggle .brand-toggle-opt')).map((b) => b.dataset.mode),
+    modeActive: document.querySelectorAll('#hub-mode-toggle .brand-toggle-opt.active').length,
+    kpis: ['home-k-cost', 'home-k-mk', 'home-k-optin', 'home-k-next'].map((id) => (document.getElementById(id) || {}).textContent),
+    questions: document.querySelectorAll('.home-q').length, menu: document.querySelectorAll('#sb-nav .nav-tab').length,
+  }));
+  if (homeInfo.active !== 'p16') fail('[home] the start page should be Home, it is ' + homeInfo.active);
+  if (JSON.stringify(homeInfo.modes) !== JSON.stringify(['explore', 'tools', 'activation'])) fail('[home] the switch should only have Messaging, Costs and Activation, it has ' + JSON.stringify(homeInfo.modes));
+  if (homeInfo.modeActive) fail('[home] no switch option should look selected on Home');
+  if (homeInfo.questions < 6) fail('[home] the question buttons are missing');
+  await page.waitForTimeout(800);
+  const kp = await page.evaluate(() => ['home-k-cost', 'home-k-mk', 'home-k-optin', 'home-k-next'].map((id) => document.getElementById(id).textContent));
+  if (!/^\$[\d,]+$/.test(kp[0])) fail('[home] the SMS cost number looks wrong: ' + kp[0]);
+  if (!/^\d+$/.test(kp[1]) || Number(kp[1]) < 1) fail('[home] the markets number looks wrong: ' + kp[1]);
+  if (!/^[\d.]+%$/.test(kp[2])) fail('[home] the opt-in number looks wrong: ' + kp[2]);
+  if (!kp[3] || kp[3] === '…' || kp[3] === 'n/a') fail('[home] the next activation is missing: ' + kp[3]);
+  const same = await page.evaluate(() => '$' + Math.round(obsModelTotal(window._imData).all).toLocaleString('en-US'));
+  if (kp[0] !== same) fail('[home] the cost number (' + kp[0] + ') should equal the model total (' + same + ')');
+  // search
+  await page.fill('#home-q', 'twilio'); await page.waitForTimeout(200);
+  const res = await page.evaluate(() => Array.from(document.querySelectorAll('#home-results .home-res')).map((r) => r.innerText.replace(/\s+/g, ' ').trim()));
+  if (!res.some((r) => /Cost calculator/.test(r))) fail('[home] searching "twilio" should find the Cost calculator, found ' + JSON.stringify(res));
+  await page.fill('#home-q', 'zzzzqq'); await page.waitForTimeout(200);
+  if (!/Nothing found/.test(await page.evaluate(() => document.getElementById('home-results').innerText))) fail('[home] a search with no result should say so');
+  await page.fill('#home-q', 'France'); await page.waitForTimeout(200); await page.keyboard.press('Enter'); await page.waitForTimeout(700);
+  v = await view();
+  if (v.active !== 'p0' || !v.url.includes('country=France')) fail('[home] searching a country and pressing Enter should open the flow map on that country, it is ' + v.url + ' (' + v.active + ')');
+  if (await page.evaluate(() => (document.getElementById('flow-country-sel') || {}).value) !== 'France') fail('[home] the flow map should show France');
+  // "Messaging Hub" at the top left leads home, and Back returns
+  await page.click('.sb-hub-title a'); await page.waitForTimeout(600);
+  v = await view();
+  if (v.active !== 'p16' || v.url !== '/index.html') fail('[home] clicking "Messaging Hub" should open Home at a clean address, it is ' + v.url + ' (' + v.active + ')');
+  await page.goBack(); await page.waitForTimeout(600);
+  if ((await view()).active !== 'p0') fail('[home] Back from Home should return to the flow map');
+  // a question button opens the calculator already set
+  await page.click('.sb-hub-title a'); await page.waitForTimeout(500);
+  await page.locator('.home-q', { hasText: 'Twilio cost instead' }).click(); await page.waitForTimeout(800);
+  v = await view();
+  if (v.active !== 'p15') fail('[home] the Twilio button should open the Cost calculator, it shows ' + v.active);
+  if (await page.evaluate(() => document.getElementById('cc-carrier').value) !== 'twilio') fail('[home] the Twilio button should set the carrier to Twilio');
+  if (v.url.includes('preset=')) fail('[home] the quick start should not stay in the address after it is used, it is ' + v.url);
+  await open('?page=cost-calculator&preset=optin');
+  if (await page.evaluate(() => document.getElementById('cc-scenario').value) !== 'full') fail('[home] a link with preset=optin should set "If everyone opted in"');
+  // Xe has no Home: the start of Xe is its journeys
+  await open('?brand=xe');
+  if ((await view()).active !== 'p2') fail('[home] Xe should open its journeys, not Home');
 } catch (e) {
   fail('the test stopped early: ' + String(e.message).split('\n')[0].slice(0, 200));
 } finally {

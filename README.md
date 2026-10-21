@@ -1,4 +1,4 @@
-# Messaging Hub V6.9.0.0
+# Messaging Hub V6.10.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -43,6 +43,8 @@ For Ria Digital and for Xe it shows the real Iterable journeys, pulled daily fro
 Daily opt-in figures captured from the Opt-in Power BI dashboard, global or by country. Email, SMS and WhatsApp are shown as trend charts with a hover readout, and up to 8 countries can be compared side by side.
 
 ### Costs
+
+**Home page.** The start page (`js/pages/home.js`, address `index.html`) has a search box (pages, countries, message names), four key numbers (model SMS cost with the real invoices below it, markets sending SMS, service SMS opt-in, next activation week) and buttons for the questions people ask. The numbers use the same model and data files as the pages. Click "Messaging Hub" at the top left to return. Xe has no Home, it opens its journeys. The flow map now has its own address (`?page=flow-map`). A link like `?page=cost-calculator&preset=twilio` opens the calculator on a quick start (today, optin, twilio, global).
 
 **Menu today.** The Costs menu shows two pages: the **Cost calculator** (new, 2026 data) and How we calculate this. The cost calculators are not in the menu, but they all still open by link and keep their code and data: Full Opt-in Impact (`?page=full-opt-in-impact`), Iterable Migration (`?page=iterable-migration`) and five older models. **FX Client Activations moved to the Activation menu** (after the SMS activation map and the Activation roadmap). The Cost calculator (`?page=cost-calculator`, `js/pages/cost-calculator.js`) answers four questions on one page: what we pay today, what activating more messages costs, what changes if opt-in changes, and what another carrier (Clickatell or Twilio) would cost. You pick markets and messages, then compare today with the scenario, by market and by message, with PNG and CSV export. The Iterable profile fee is an optional folded block. Quick starts reproduce the old questions (what we pay today, everyone opted in, Twilio, global deployment). The maths is in `ccCompute()` and is tested against an independent calculation. To hide or show a page, move it in `TOOLS_NAV` or `ACTIVATION_NAV` in `js/core/navigation.js` (a section with `hidden:true` is not shown, and its pages still work by link).
 

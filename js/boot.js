@@ -30,6 +30,7 @@
     'js/core/observed-rates.js',
     'js/pages/iterable-migration.js',
     'js/pages/cost-calculator.js',
+    'js/pages/home.js',
     'js/pages/fx-activations.js',
     'js/pages/activation-map.js',
     'js/pages/optin-rates.js',

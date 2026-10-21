@@ -20,7 +20,8 @@ const PAGE_META = {
   p12: {slug:'fx-client-activations',    title:'FX Client Activations'},
   p13: {slug:'activation-map',           title:'SMS activation map'},
   p14: {slug:'activation-roadmap',       title:'Activation roadmap'},
-  p15: {slug:'cost-calculator',          title:'Cost calculator'}
+  p15: {slug:'cost-calculator',          title:'Cost calculator'},
+  p16: {slug:'home',                     title:'Home'}
 };
 
 // 'iterable-migration' or the old 'p11' gives 'p11'. Unknown names give null.
@@ -36,7 +37,7 @@ function pageIdFromLink(name){
 function buildViewURL(tabId, pageOnly){
   const id = tabId || activeTab;
   const params = new URLSearchParams();
-  if(id !== 'p0') params.set('page', PAGE_META[id] ? PAGE_META[id].slug : id);
+  if(id !== 'p16') params.set('page', PAGE_META[id] ? PAGE_META[id].slug : id);
   if(activeBrand !== 'ria') params.set('brand', activeBrand);
   if(activeAudience !== 'bm') params.set('aud', activeAudience);
   if(!pageOnly){
@@ -59,7 +60,7 @@ function updateURLState(how){
     history[how === 'push' ? 'pushState' : 'replaceState'](null, '', url);
   }
   const meta = PAGE_META[activeTab];
-  document.title = (meta ? meta.title : 'Messaging Hub') + ' | Messaging Hub';
+  document.title = (meta && activeTab !== 'p16' ? meta.title : 'Messaging Hub') + ' | Messaging Hub';
 }
 
 // Reads the address and sets the state. Anything missing in the link gets its default, so Back works too.
@@ -68,7 +69,8 @@ function applyURLState(){
   activeBrand = params.get('brand') === 'xe' ? 'xe' : 'ria';
   activeAudience = params.get('aud') === 'digital' ? 'digital' : 'bm';
   activeIntent = params.get('intent') || 'all';
-  activeTab = pageIdFromLink(params.get('page') || params.get('tab')) || 'p0';
+  activeTab = pageIdFromLink(params.get('page') || params.get('tab')) || 'p16';
+  window._pendingPreset = params.get('preset') || null;   // a quick start of the Cost calculator, used by the Home buttons
   window._pendingMsg = params.get('msg') || null;
   if(params.has('event') || params.has('country')){
     window._flowState = window._flowState || {event:'all', country:'United States'};
@@ -82,13 +84,15 @@ function applyURLState(){
 // Shows the view the address asks for. Used at start up and when Back or Forward is pressed.
 function restoreFromURL(){
   applyURLState();
-  if(!document.getElementById(activeTab)) activeTab = 'p0';
-  hubMode = TOOLS_PAGE_IDS.indexOf(activeTab) !== -1 ? 'tools' : (ACTIVATION_PAGE_IDS.indexOf(activeTab) !== -1 ? 'activation' : 'explore'); // a link into a cost or activation page opens straight into that mode
+  if(!document.getElementById(activeTab)) activeTab = 'p16';
+  if(activeBrand === 'xe' && activeTab === 'p16') activeTab = 'p2';   // Xe has no Home page, it opens its journeys
+  hubMode = activeTab === 'p16' ? 'home' : TOOLS_PAGE_IDS.indexOf(activeTab) !== -1 ? 'tools' : (ACTIVATION_PAGE_IDS.indexOf(activeTab) !== -1 ? 'activation' : 'explore'); // a link into a cost or activation page opens straight into that mode
   document.body.classList.toggle('brand-xe', activeBrand === 'xe');
   document.querySelectorAll('#hub-mode-toggle .brand-toggle-opt').forEach(function(b){ b.classList.toggle('active', b.dataset.mode === hubMode); });
   const hubToggle = document.getElementById('hub-mode-toggle');
   if(hubToggle){
     hubToggle.classList.toggle('tools-active', hubMode === 'tools');
+    hubToggle.classList.toggle('home-active', hubMode === 'home');
     hubToggle.classList.toggle('activation-active', hubMode === 'activation');
   }
   const audSwitcher = document.getElementById('audience-switcher');
