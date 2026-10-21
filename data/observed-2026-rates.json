@@ -1,0 +1,122 @@
+{
+ "period": "1 Jan to 13 Oct 2026",
+ "days": 286,
+ "markets": {
+  "United States": {
+   "tx": 53383737,
+   "ev": {
+    "Transaction Ready for Pickup": 25257623,
+    "Transaction Paid": 19260179,
+    "Transaction Pick Up Reminder (3 Days)": 874110,
+    "Transaction Canceled": 194596,
+    "Strategic Retail Partners - Refund Completed": 164552,
+    "Strategic Retail Partners - Available for Refund": 164020,
+    "Transaction Pick Up Reminder (7 Days)": 114620,
+    "Transaction Needs Information": 66450,
+    "Agent activated due to paid credit": 50152,
+    "Transaction Pick Up Reminder (14 Days)": 44709,
+    "Customer Opt-In": 39382,
+    "Transaction Resent": 37756,
+    "Agent suspended due to past-due balance": 23375,
+    "Transaction Rejected": 20970,
+    "Requires interview": 10144,
+    "Transaction Ready for Refund": 8762,
+    "Fraud Model - Transaction Needs Information": 6908
+   },
+   "pickupTx": 30302074
+  },
+  "Canada": {
+   "tx": 4456257,
+   "ev": {
+    "Transaction Paid": 1524870,
+    "Transaction Ready for Pickup": 570091,
+    "Transaction Needs Information": 3340,
+    "Customer Opt-In": 2001,
+    "Requires interview": 1185,
+    "Agent activated due to paid credit": 43,
+    "Agent suspended due to past-due balance": 39,
+    "Agent suspended 15 days reminder": 12,
+    "Agent suspended 7 days reminder": 6
+   },
+   "pickupTx": 2448905
+  },
+  "Australia": {
+   "tx": 2225104,
+   "ev": {
+    "Transaction Ready for Pickup": 570573,
+    "Transaction Paid": 551502,
+    "Payment Instructions Sent": 86455,
+    "Transaction Expired": 5243,
+    "Transaction Cancelled (Incorrect Account Details)": 2677,
+    "Transaction Ready for Refund": 1960,
+    "Invalid Payment": 1401,
+    "Transaction Cancelled (Time Limit Expired)": 887,
+    "Customer Opt-In": 757,
+    "Transaction Cancelled (Customer Requested)": 620,
+    "Transaction Needs Information": 5,
+    "Transaction Cancelled (Test Transaction)": 2
+   },
+   "pickupTx": 792396
+  },
+  "France": {
+   "tx": 12491882,
+   "ev": {
+    "Transaction Ready for Pickup": 47982,
+    "Transaction Ready for Refund": 17395,
+    "Customer Opt-In": 5371,
+    "Transaction Paid": 778
+   },
+   "pickupTx": 8790174
+  },
+  "Spain": {
+   "tx": 15429613,
+   "ev": {
+    "Transaction Ready for Refund": 56722,
+    "Transaction Ready for Pickup": 33374,
+    "Customer Opt-In": 5737,
+    "Transaction Entered": 37,
+    "Transaction Needs Information": 12
+   },
+   "pickupTx": 7114510
+  },
+  "Germany": {
+   "tx": 5609166,
+   "ev": {
+    "Transaction Ready for Pickup": 43240,
+    "Transaction Ready for Refund": 10024,
+    "Transaction Paid": 5608,
+    "Customer Opt-In": 1996
+   },
+   "pickupTx": 3850136
+  },
+  "Italy": {
+   "tx": 7980980,
+   "ev": {
+    "Transaction Ready for Pickup": 74405,
+    "Transaction Ready for Refund": 4880,
+    "Customer Opt-In": 4496
+   },
+   "pickupTx": 3961525
+  },
+  "United Kingdom": {
+   "tx": 4811366,
+   "ev": {
+    "Transaction Ready for Pickup": 62408,
+    "Transaction Ready for Refund": 17544,
+    "Customer Opt-In": 2020,
+    "Transaction Needs Information": 1
+   },
+   "pickupTx": 1958650
+  },
+  "Belgium": {
+   "tx": 2226285,
+   "ev": {
+    "Transaction Ready for Pickup": 6973,
+    "Transaction Ready for Refund": 2845,
+    "Customer Opt-In": 776,
+    "Transaction Needs Information": 241
+   },
+   "pickupTx": 1760541
+  }
+ }
+}

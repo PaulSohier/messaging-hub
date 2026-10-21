@@ -1,4 +1,4 @@
-# Messaging Hub V6.0.0.0
+# Messaging Hub V6.1.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -166,7 +166,7 @@ Sheet structure:
 
 Each of these pages shows a status box at the top: "Synced with the Messages Library" with the time, the number of live SMS messages and markets, what changed compared with the built-in snapshot, and how many live library events are not costed because the cost model has no participation rate for them. If the sheet cannot load, the pages use the values written in the code and say so.
 
-**Still hardcoded in the `js/` files (mostly `js/core/shared-data.js` and `js/core/observed-rates.js`):** country rates, order volumes, the 2026 event counts of the 9 measured markets (`OBS` block), participation rates (US 2026 rates, plus the 2025 US counts for older events), Iterable contract figures, the Global Agent country list, and the world map shapes (simplified). Changing any of them means a code edit and a new push. The Opt-in cost impact (by journey) and the Global deployment pages are older models and do not follow the library: the first has its own fixed message counts per journey, and the second use the measured 2025 SMS per order.
+**Fixed numbers kept in data files (edit the file and push, no code change):** country rates, order volumes and the 2025 US events are in `data/shared-rates.json`. The 2026 event counts of the 9 measured markets are in `data/observed-2026-rates.json`. The B&M customer journeys are in `data/bm-journeys.json`. The world map shapes are in `data/act-geo.json`. **Still hardcoded in the `js/` files:** participation rates (US 2026 rates, plus the 2025 US counts for older events), Iterable contract figures and the Global Agent country list. Changing any of those means a code edit and a new push. The Opt-in cost impact (by journey) and the Global deployment pages are older models and do not follow the library: the first has its own fixed message counts per journey, and the second use the measured 2025 SMS per order.
 
 **Message links:** the sheet's `MessageID` column is blank on every row, so per-message share links are built from a mix of title, country, channel, event, recipient, agent and service. That is unique for almost every message. A small number of genuine duplicate rows share a link, which is harmless since they show identical content. Filling in `MessageID` would make this exact.
 
@@ -215,7 +215,7 @@ Needs Power BI tenant-admin rights, so likely IT or the data team rather than CX
 ## Known open items
 
 - **Three Flow Map elements are still hidden.** The Message Library column, the Who Gets It column and the route-count summary line were hidden for a presentation and never restored. They are marked with `TEMP: hidden for CEO presentation` comments in the CSS. Remove the `display:none` on each to bring them back.
-- **The 2026 rates are a snapshot.** They are fixed in the `OBS` block of `js/core/observed-rates.js` (1 Jan to 13 Oct 2026). Refresh them with new Power BI exports every 2 to 3 months, and tell the team when a measured market activates new events, since the Library does not change "today" there. The planned daily FX Client query would replace this.
+- **The 2026 rates are a snapshot.** They are fixed in `data/observed-2026-rates.json` (1 Jan to 13 Oct 2026). Refresh them with new Power BI exports every 2 to 3 months, and tell the team when a measured market activates new events, since the Library does not change "today" there. The planned daily FX Client query would replace this.
 - **Activation map is SMS only.** The live events come from the SMS rows of the Messages Library. WhatsApp events are not shown as activated yet.
 - **Some markets have no estimate on the Activation map.** Colombia has live events but no order volume or Clickatell rate on file, so its panel shows no cost. French overseas territories with live events (French Guiana, Guadeloupe, Martinique, Mayotte, Reunion) are not drawn on the map.
 - **Xe has no Consumer and Corporate split.** The audience switch is disabled for Xe because the Xe pull is a single list. Splitting it would mean two separate pulls.
@@ -224,7 +224,7 @@ Needs Power BI tenant-admin rights, so likely IT or the data team rather than CX
 
 ## Project structure
 
-Since V6.0.0.0 the Hub is split into several files. There is still no build step: GitHub Pages serves the files as they are.
+Since V6.0.0.0 the Hub is split into several files, and since V6.1.0.0 its fixed data sits in JSON files. There is still no build step: GitHub Pages serves the files as they are.
 
 ```
 index.html              Page shell (sidebar and page containers), loads the files below
@@ -232,21 +232,24 @@ css/hub.css             All styles
 assets/                 Logos
 js/core/                Shared code: data tables, state, helpers, navigation, sheet sync, observed rates
 js/pages/               One file per page or group of pages (library, journeys, costs, opt-in, activation...)
-js/main.js              Start up: first render and sheet load
-data/                   JSON data read by the pages (Iterable pulls, opt-in, roadmap, map shapes)
+js/boot.js              Loads the data files, then the scripts below in order
+js/main.js              Start up: first render and sheet load (runs last)
+data/                   JSON data read by the pages (rates, observed 2026 rates, B&M journeys, Iterable pulls, opt-in, roadmap, map shapes)
 scripts/                Node script used by the Iterable pull workflow
 .github/workflows/      Deploy, PR preview and Iterable pull
 ```
 
-The JavaScript files are normal scripts, not modules. They share one global scope, so **the order of the script tags at the end of `index.html` matters**. A file can use anything defined in the files listed above it. When you add a file, add its tag in the right place.
+The JavaScript files are normal scripts, not modules. They share one global scope, so **the order of the list in `js/boot.js` matters**. A file can use anything defined in the files listed above it. When you add a file, add it to that list in the right place. `js/boot.js` first loads the data files into `window.HUB_DATA`, and only then runs the scripts.
 
 Each JS file starts with a one line comment saying what it contains.
+
+To test on your computer, serve the folder instead of double clicking `index.html`, for example with `python -m http.server` in the repository folder and then open `http://localhost:8000`. The Hub reads its data with `fetch`, which browsers block for files opened directly from disk.
 
 ## How to update the dashboard
 
 Change the files in this repository, commit and push to `main`. GitHub Pages serves the `main` branch directly and the URL stays the same.
 
-Each new version gets a version number (format VX.X.X.X: major, minor, patch, build). Update it in the title of this README and in the `?v=` part of the `css` and `js` links at the bottom and top of `index.html`. That `?v=` value makes browsers load the new files instead of old cached ones.
+Each new version gets a version number (format VX.X.X.X: major, minor, patch, build). Update it in the title of this README and in the `?v=` part of the two links in `index.html` (the CSS link at the top and the `js/boot.js` link at the bottom). That `?v=` value makes browsers load the new files instead of old cached ones. `js/boot.js` passes it on to every file it loads.
 
 ## Owner
 
