@@ -1,4 +1,4 @@
-# Messaging Hub V6.2.0.0
+# Messaging Hub V6.3.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
