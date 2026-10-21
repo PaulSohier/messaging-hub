@@ -1,158 +1,158 @@
-<!DOCTYPE html>
-<!-- Ria Money Transfer Messaging Hub. Data comes from Google Sheets and the data folder. -->
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>Messaging Hub</title>
-<link rel="stylesheet" href="css/hub.css?v=6.5.0.0">
-</head>
-<body>
-
-<div class="app-shell">
-<aside class="sidebar">
-  <div class="sb-hub-title">Messaging Hub</div>
-  <div class="brand-toggle" id="hub-mode-toggle">
-    <div class="brand-toggle-thumb" id="hub-mode-thumb"></div>
-    <button class="brand-toggle-opt active" id="hub-mode-opt-explore" data-mode="explore" onclick="setHubMode('explore')">Messaging</button>
-    <button class="brand-toggle-opt" id="hub-mode-opt-tools" data-mode="tools" onclick="setHubMode('tools')">Costs</button>
-    <button class="brand-toggle-opt" id="hub-mode-opt-activation" data-mode="activation" onclick="setHubMode('activation')">Activation</button>
-  </div>
-  <div class="brand-toggle" id="brand-toggle">
-    <div class="brand-toggle-thumb" id="brand-toggle-thumb"></div>
-    <button class="brand-toggle-opt active" data-brand="ria" onclick="setBrand('ria')">
-      <img src="assets/logo-ria.png" alt="" class="brand-logo-sm">Ria
-    </button>
-    <button class="brand-toggle-opt" data-brand="xe" onclick="setBrand('xe')">
-      <img src="assets/logo-xe.png" alt="" class="brand-logo-sm">Xe
-    </button>
-  </div>
-  <div class="aud-toggle" id="audience-switcher">
-    <div class="aud-toggle-thumb" id="aud-toggle-thumb"></div>
-    <button class="aud-toggle-opt active" id="aud-opt-bm" data-aud="bm" onclick="setStructuralAudience('bm')">B&amp;M</button>
-    <button class="aud-toggle-opt" id="aud-opt-digital" data-aud="digital" onclick="setStructuralAudience('digital')">Digital</button>
-  </div>
-  <nav class="sb-nav" id="sb-nav"></nav>
-  <div class="sb-footer">
-    <div class="sb-legend">
-      <div class="leg"><div class="leg-dot" style="background:var(--live)"></div>Live</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--hint)"></div>Draft</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--sms)"></div>SMS</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--wa)"></div>WhatsApp</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--em)"></div>Email</div>
-    </div>
-    <span id="sheet-indicator"></span>
-  </div>
-</aside>
-
-<div class="main-content">
-<div class="intent-bar" id="intent-bar"></div>
-
-<div class="page active" id="p0"><div class="page-title">Message flow map <span class="page-note">Live routes — library to recipient · filtered by selected intent</span></div><div id="p0-content"></div></div>
-<div class="page" id="p1"><div class="page-title">Messages Library <span class="page-note">Every template grouped by event and channel · click event to expand</span></div>
-<div style="display:flex;align-items:center;margin-bottom:14px;">
-  <div class="search-wrap">
-    <span class="search-icon">&#128269;</span>
-    <input id="p1-search" class="search-input" type="text" placeholder="Search by title or message text…" oninput="setSearch(this.value)">
-    <span class="search-clear" id="p1-search-clear" style="display:none" onclick="clearSearch()">&times;</span>
-  </div>
-  <span class="search-count" id="p1-search-count"></span>
-</div>
-<div id="p1-filter-row" style="display:none;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;">
-  <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);">Country:</span>
-  <select id="p1-country-select" class="p1-filter-select" onchange="setP1CountryFilter(this.value)">
-    <option value="all">All countries</option>
-  </select>
-  <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-left:8px;">Channel:</span>
-  <div class="intent-pill active" data-p1channel="all" onclick="setP1ChannelFilter('all')">All</div>
-  <div class="intent-pill" data-p1channel="SMS" onclick="setP1ChannelFilter('SMS')">SMS</div>
-  <div class="intent-pill" data-p1channel="WhatsApp" onclick="setP1ChannelFilter('WhatsApp')">WhatsApp</div>
-  <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;user-select:none;margin-left:14px;padding-left:14px;border-left:1px solid var(--border);">
-    <input type="checkbox" id="p1-fill-placeholders" onchange="setP1FillPlaceholders(this.checked)" style="cursor:pointer;">
-    Fill placeholders with sample data
-  </label>
-</div>
-<div id="p1-content"></div></div>
-<div class="page" id="p2"><div class="page-title"><span style="display:flex;align-items:center;gap:8px;">Customer journeys<span id="p2-iter-badge" style="display:none;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:20px;background:var(--purple-bg);color:var(--purple);">via Iterable</span></span><span class="page-note" id="p2-page-note">What messages a customer receives — happy and unhappy paths</span></div>
-<div id="p2-search-row" style="display:none;align-items:center;margin-bottom:16px;">
-  <div class="search-wrap">
-    <span class="search-icon">&#128269;</span>
-    <input id="p2-search" class="search-input" type="text" placeholder="Search journeys or campaigns…" oninput="setIterSearch(this.value)">
-    <span class="search-clear" id="p2-search-clear" style="display:none" onclick="clearIterSearch()">&times;</span>
-  </div>
-  <span class="search-count" id="p2-search-count"></span>
-</div>
-<div id="p2-content"></div></div>
-<div class="page" id="p3"><div class="page-title">SMS Costs <span class="page-note">Projected spend by event type — fill in total orders and per-SMS cost to calculate</span></div><div id="p3-content"></div></div>
-<div class="page" id="p5"><div class="page-title">Twilio SMS calculator <span class="page-note">Same model, Twilio rate card — covers the 57 countries in the current Twilio contract</span></div><div id="p5-content"></div></div>
-<div class="page" id="p4"><div class="page-title">Global deployment cost <span class="page-note">Projected annual SMS cost of deploying US notification coverage to all active markets</span></div><div id="p4-content"></div></div>
-<div class="page" id="p6"><div class="page-title">Global deployment Twilio <span class="page-note">Same view, Twilio rate card — 46 markets with both a contracted Twilio rate and order-volume data</span></div><div id="p6-content"></div></div>
-<div class="page" id="p7"><div class="page-title">How we calculate this <span class="page-note">Methodology behind every number in this tool</span></div>
-<div style="max-width:820px;line-height:1.7;font-size:13px;color:var(--text);">
-
-<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
-<div style="font-size:14px;font-weight:700;margin-bottom:10px;">Three cost concepts — kept strictly separate</div>
-<table style="width:100%;border-collapse:collapse;font-size:12.5px;">
-<tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 10px;font-weight:700;color:var(--purple);width:180px;">Actual cost</td><td style="padding:8px 10px;">Real notification volume × local SMS rate, taken directly from Clickatell/Twilio billing files. What was actually spent.</td></tr>
-<tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 10px;font-weight:700;color:var(--purple);">Cost at full scale</td><td style="padding:8px 10px;">What a journey would cost in a country if it sent messages at the same rate the US does per order — used because no other market has its own behavioral data yet.</td></tr>
-<tr><td style="padding:8px 10px;font-weight:700;color:var(--purple);">Cost at an opt-in scenario</td><td style="padding:8px 10px;">A separate dial: what cost looks like if the share of customers opted in to SMS changes, independent of how often an opted-in customer gets messaged.</td></tr>
-</table>
-</div>
-
-<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
-<div style="font-size:14px;font-weight:700;margin-bottom:10px;">Real 2026 rates (Ria BI), updated Oct 2026</div>
-<p style="margin-bottom:10px;"><strong>Source.</strong> Power BI reports "Global BI notifications" (SMS count per event, by Country From) and "Ria Transactions", from 1 Jan to 13 Oct 2026 (286 days). Nine markets are measured: United States, Canada, Australia, France, Spain, Germany, Italy, United Kingdom and Belgium. Rate = SMS for an event divided by transactions, as a percentage.</p>
-<p style="margin-bottom:10px;"><strong>What is live today.</strong> For a measured market, the real 2026 rate of each event. For the other markets, the European average (France, Spain, Germany, Italy, UK and Belgium pooled), only for the events live in the Messages Library. Orders for the 9 markets are the 2026 transactions annualised (x 365/286).</p>
-<p style="margin-bottom:10px;"><strong>What happens if an event is activated.</strong> Full coverage = the US 2026 rate of the event. For Ready for Pickup it is adjusted by each market's share of office pick-up transactions compared with the US. Extra SMS = full coverage minus what the market sends today. An event counts as live when its real rate reaches 60% of full coverage, and then adds nothing.</p>
-<p style="margin-bottom:10px;"><strong>Check against the invoices.</strong> The estimate of what we send today is about 84% of the real Clickatell SMS invoices (Dec 2024 to Nov 2025). The difference can come from the older period, MO and other messages, and unmeasured markets.</p>
-<p><strong>Not changed.</strong> The two older SMS calculators (Tabs 4 and 5) still use the 2025 US rates on purpose: they answer "what if every market sent like the US".</p>
-</div>
-
-<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
-<div style="font-size:14px;font-weight:700;margin-bottom:10px;">The SMS Cost Calculator (Tabs 4 &amp; 5)</div>
-<p style="margin-bottom:10px;">Projected cost = <strong>selected country's order volume × US participation rate for that event × local SMS cost × billing units per message</strong>.</p>
-<p style="margin-bottom:10px;">Participation rate is measured from real US 2025 order and notification volumes (Power BI) — the share of orders that actually triggered each SMS event. Every other country borrows this rate as a proxy, since the US is the only market with its own behavioral history on file.</p>
-<p>The <strong>SMS opt-in scenario</strong> slider is a separate multiplier on top of this: baseline is today's real US opt-in rate (2,181,880 of 8,375,496 US customers, ≈26%). Moving the slider scales projected volume by the ratio of target opt-in to that baseline — assuming newly opted-in customers behave like already-opted-in ones on average.</p>
-</div>
-
-<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
-<div style="font-size:14px;font-weight:700;margin-bottom:10px;">Global Deployment Cost (Tabs 6 &amp; 7)</div>
-<p>Same participation-rate proxy model, applied across all markets with order-volume data on file — 139 markets on Clickatell rates, 46 on Twilio (the subset of the 57 Twilio-contracted countries that also have order volume on record). Countries without order data are listed rather than estimated, so nothing here is a guess dressed up as a number.</p>
-</div>
-
-<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
-<div style="font-size:14px;font-weight:700;margin-bottom:10px;">What "Live" means here</div>
-<p style="margin-bottom:10px;">Message Flow Map, Messages Library, and Customer Journeys only show messages marked <strong>Live = Yes</strong> in the source Google Sheet. That filter now happens server-side — the dashboard requests only live rows from the sheet, rather than downloading everything and hiding the rest client-side.</p>
-<p>Customer Journeys uses a separate hardcoded dataset (not sheet-fed), so its messages are cross-matched against the live sheet by title to decide what to show.</p>
-</div>
-
-<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;">
-<div style="font-size:14px;font-weight:700;margin-bottom:10px;">Data sources</div>
-<ul style="padding-left:18px;">
-<li style="margin-bottom:6px;">Order volumes: Power BI, all B&amp;M markets, 2025 (9 markets refreshed with 2026 transactions)</li>
-<li style="margin-bottom:6px;">Event rates, 9 markets: Ria BI "Global BI notifications" and "Ria Transactions", 1 Jan to 13 Oct 2026</li>
-<li style="margin-bottom:6px;">Message templates — Google Sheet mirroring the Ria transactional message library (B&amp;M + Digital tabs)</li>
-<li style="margin-bottom:6px;">SMS costs (Clickatell) — current contracted telco rates</li>
-<li style="margin-bottom:6px;">SMS costs (Twilio) — contract rate schedule, effective Aug 1, 2025</li>
-<li>Billing units — most Ria SMS messages run ~200 characters, spanning 2 telco billing units of 160 characters each; editable per calculation.</li>
-</ul>
-</div>
-
-</div>
-</div>
-
-<div class="page" id="p8"><div class="page-title">Opt-in rates <span class="page-note" id="p8-page-note">Daily-captured from the Opt-in PowerBI dashboard — global or single country</span></div><div id="p8-content"></div></div>
-<div class="page" id="p9"><div class="page-title">Full Opt-in Impact <span class="page-note">2025 actual SMS cost vs. expected cost if every customer opted in</span></div><div id="p9-content"></div></div>
-<div class="page" id="p10"><div class="page-title">Opt-in cost impact (by journey) <span class="page-note">Same question, modeled by delivery-path journey instead of flat events</span></div><div id="p10-content"></div></div>
-<div class="page" id="p11"><div class="page-title">Iterable Migration <span class="page-note">How much B&amp;M SMS would cost per year, by market and by message</span></div><div id="p11-content"></div></div>
-<div class="page" id="p12"><div class="page-title">FX Client Activations <span class="page-note">Extra SMS cost per year if we turn on more messages in FX Client with Clickatell</span></div><div id="p12-content"></div></div>
-<div class="page" id="p13"><div class="page-title">SMS activation map <span class="page-note">B&amp;M, Ria: what is live in FX Client today</span></div><div id="p13-content"></div></div>
-<div class="page" id="p14"><div class="page-title">Activation roadmap <span class="page-note">B&amp;M, Ria: which events go live, in which markets, each week</span></div><div id="p14-content"></div></div>
-
-</div><!-- /main-content -->
-</div><!-- /app-shell -->
-
-<script src="js/boot.js?v=6.5.0.0"></script>
-</body>
-</html>
+<!DOCTYPE html>
+<!-- Ria Money Transfer Messaging Hub. Data comes from Google Sheets and the data folder. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Messaging Hub</title>
+<link rel="stylesheet" href="css/hub.css?v=6.5.0.0">
+</head>
+<body>
+
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sb-hub-title">Messaging Hub</div>
+  <div class="brand-toggle" id="hub-mode-toggle">
+    <div class="brand-toggle-thumb" id="hub-mode-thumb"></div>
+    <button class="brand-toggle-opt active" id="hub-mode-opt-explore" data-mode="explore" onclick="setHubMode('explore')">Messaging</button>
+    <button class="brand-toggle-opt" id="hub-mode-opt-tools" data-mode="tools" onclick="setHubMode('tools')">Costs</button>
+    <button class="brand-toggle-opt" id="hub-mode-opt-activation" data-mode="activation" onclick="setHubMode('activation')">Activation</button>
+  </div>
+  <div class="brand-toggle" id="brand-toggle">
+    <div class="brand-toggle-thumb" id="brand-toggle-thumb"></div>
+    <button class="brand-toggle-opt active" data-brand="ria" onclick="setBrand('ria')">
+      <img src="assets/logo-ria.png" alt="" class="brand-logo-sm">Ria
+    </button>
+    <button class="brand-toggle-opt" data-brand="xe" onclick="setBrand('xe')">
+      <img src="assets/logo-xe.png" alt="" class="brand-logo-sm">Xe
+    </button>
+  </div>
+  <div class="aud-toggle" id="audience-switcher">
+    <div class="aud-toggle-thumb" id="aud-toggle-thumb"></div>
+    <button class="aud-toggle-opt active" id="aud-opt-bm" data-aud="bm" onclick="setStructuralAudience('bm')">B&amp;M</button>
+    <button class="aud-toggle-opt" id="aud-opt-digital" data-aud="digital" onclick="setStructuralAudience('digital')">Digital</button>
+  </div>
+  <nav class="sb-nav" id="sb-nav"></nav>
+  <div class="sb-footer">
+    <div class="sb-legend">
+      <div class="leg"><div class="leg-dot" style="background:var(--live)"></div>Live</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--hint)"></div>Draft</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--sms)"></div>SMS</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--wa)"></div>WhatsApp</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--em)"></div>Email</div>
+    </div>
+    <span id="sheet-indicator"></span>
+  </div>
+</aside>
+
+<div class="main-content">
+<div class="intent-bar" id="intent-bar"></div>
+
+<div class="page active" id="p0"><div class="page-title">Message flow map <span class="page-note">Live routes — library to recipient · filtered by selected intent</span></div><div id="p0-content"></div></div>
+<div class="page" id="p1"><div class="page-title">Messages Library <span class="page-note">Every template grouped by event and channel · click event to expand</span></div>
+<div style="display:flex;align-items:center;margin-bottom:14px;">
+  <div class="search-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input id="p1-search" class="search-input" type="text" placeholder="Search by title or message text…" oninput="setSearch(this.value)">
+    <span class="search-clear" id="p1-search-clear" style="display:none" onclick="clearSearch()">&times;</span>
+  </div>
+  <span class="search-count" id="p1-search-count"></span>
+</div>
+<div id="p1-filter-row" style="display:none;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;">
+  <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);">Country:</span>
+  <select id="p1-country-select" class="p1-filter-select" onchange="setP1CountryFilter(this.value)">
+    <option value="all">All countries</option>
+  </select>
+  <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-left:8px;">Channel:</span>
+  <div class="intent-pill active" data-p1channel="all" onclick="setP1ChannelFilter('all')">All</div>
+  <div class="intent-pill" data-p1channel="SMS" onclick="setP1ChannelFilter('SMS')">SMS</div>
+  <div class="intent-pill" data-p1channel="WhatsApp" onclick="setP1ChannelFilter('WhatsApp')">WhatsApp</div>
+  <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;user-select:none;margin-left:14px;padding-left:14px;border-left:1px solid var(--border);">
+    <input type="checkbox" id="p1-fill-placeholders" onchange="setP1FillPlaceholders(this.checked)" style="cursor:pointer;">
+    Fill placeholders with sample data
+  </label>
+</div>
+<div id="p1-content"></div></div>
+<div class="page" id="p2"><div class="page-title"><span style="display:flex;align-items:center;gap:8px;">Customer journeys<span id="p2-iter-badge" style="display:none;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:20px;background:var(--purple-bg);color:var(--purple);">via Iterable</span></span><span class="page-note" id="p2-page-note">What messages a customer receives — happy and unhappy paths</span></div>
+<div id="p2-search-row" style="display:none;align-items:center;margin-bottom:16px;">
+  <div class="search-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input id="p2-search" class="search-input" type="text" placeholder="Search journeys or campaigns…" oninput="setIterSearch(this.value)">
+    <span class="search-clear" id="p2-search-clear" style="display:none" onclick="clearIterSearch()">&times;</span>
+  </div>
+  <span class="search-count" id="p2-search-count"></span>
+</div>
+<div id="p2-content"></div></div>
+<div class="page" id="p3"><div class="page-title">SMS Costs <span class="page-note">Projected spend by event type — fill in total orders and per-SMS cost to calculate</span></div><div id="p3-content"></div></div>
+<div class="page" id="p5"><div class="page-title">Twilio SMS calculator <span class="page-note">Same model, Twilio rate card — covers the 57 countries in the current Twilio contract</span></div><div id="p5-content"></div></div>
+<div class="page" id="p4"><div class="page-title">Global deployment cost <span class="page-note">Projected annual SMS cost of deploying US notification coverage to all active markets</span></div><div id="p4-content"></div></div>
+<div class="page" id="p6"><div class="page-title">Global deployment Twilio <span class="page-note">Same view, Twilio rate card — 46 markets with both a contracted Twilio rate and order-volume data</span></div><div id="p6-content"></div></div>
+<div class="page" id="p7"><div class="page-title">How we calculate this <span class="page-note">Methodology behind every number in this tool</span></div>
+<div style="max-width:820px;line-height:1.7;font-size:13px;color:var(--text);">
+
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
+<div style="font-size:14px;font-weight:700;margin-bottom:10px;">Three cost concepts — kept strictly separate</div>
+<table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+<tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 10px;font-weight:700;color:var(--purple);width:180px;">Actual cost</td><td style="padding:8px 10px;">Real notification volume × local SMS rate, taken directly from Clickatell/Twilio billing files. What was actually spent.</td></tr>
+<tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 10px;font-weight:700;color:var(--purple);">Cost at full scale</td><td style="padding:8px 10px;">What a journey would cost in a country if it sent messages at the same rate the US does per order — used because no other market has its own behavioral data yet.</td></tr>
+<tr><td style="padding:8px 10px;font-weight:700;color:var(--purple);">Cost at an opt-in scenario</td><td style="padding:8px 10px;">A separate dial: what cost looks like if the share of customers opted in to SMS changes, independent of how often an opted-in customer gets messaged.</td></tr>
+</table>
+</div>
+
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
+<div style="font-size:14px;font-weight:700;margin-bottom:10px;">Real 2026 rates (Ria BI), updated Oct 2026</div>
+<p style="margin-bottom:10px;"><strong>Source.</strong> Power BI reports "Global BI notifications" (SMS count per event, by Country From) and "Ria Transactions", from 1 Jan to 13 Oct 2026 (286 days). Nine markets are measured: United States, Canada, Australia, France, Spain, Germany, Italy, United Kingdom and Belgium. Rate = SMS for an event divided by transactions, as a percentage.</p>
+<p style="margin-bottom:10px;"><strong>What is live today.</strong> For a measured market, the real 2026 rate of each event. For the other markets, the European average (France, Spain, Germany, Italy, UK and Belgium pooled), only for the events live in the Messages Library. Orders for the 9 markets are the 2026 transactions annualised (x 365/286).</p>
+<p style="margin-bottom:10px;"><strong>What happens if an event is activated.</strong> Full coverage = the US 2026 rate of the event. For Ready for Pickup it is adjusted by each market's share of office pick-up transactions compared with the US. Extra SMS = full coverage minus what the market sends today. An event counts as live when its real rate reaches 60% of full coverage, and then adds nothing.</p>
+<p style="margin-bottom:10px;"><strong>Check against the invoices.</strong> The estimate of what we send today is about 84% of the real Clickatell SMS invoices (Dec 2024 to Nov 2025). The difference can come from the older period, MO and other messages, and unmeasured markets.</p>
+<p><strong>Not changed.</strong> The two older SMS calculators (Tabs 4 and 5) still use the 2025 US rates on purpose: they answer "what if every market sent like the US".</p>
+</div>
+
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
+<div style="font-size:14px;font-weight:700;margin-bottom:10px;">The SMS Cost Calculator (Tabs 4 &amp; 5)</div>
+<p style="margin-bottom:10px;">Projected cost = <strong>selected country's order volume × US participation rate for that event × local SMS cost × billing units per message</strong>.</p>
+<p style="margin-bottom:10px;">Participation rate is measured from real US 2025 order and notification volumes (Power BI) — the share of orders that actually triggered each SMS event. Every other country borrows this rate as a proxy, since the US is the only market with its own behavioral history on file.</p>
+<p>The <strong>SMS opt-in scenario</strong> slider is a separate multiplier on top of this: baseline is today's real US opt-in rate (2,181,880 of 8,375,496 US customers, ≈26%). Moving the slider scales projected volume by the ratio of target opt-in to that baseline — assuming newly opted-in customers behave like already-opted-in ones on average.</p>
+</div>
+
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
+<div style="font-size:14px;font-weight:700;margin-bottom:10px;">Global Deployment Cost (Tabs 6 &amp; 7)</div>
+<p>Same participation-rate proxy model, applied across all markets with order-volume data on file — 139 markets on Clickatell rates, 46 on Twilio (the subset of the 57 Twilio-contracted countries that also have order volume on record). Countries without order data are listed rather than estimated, so nothing here is a guess dressed up as a number.</p>
+</div>
+
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;">
+<div style="font-size:14px;font-weight:700;margin-bottom:10px;">What "Live" means here</div>
+<p style="margin-bottom:10px;">Message Flow Map, Messages Library, and Customer Journeys only show messages marked <strong>Live = Yes</strong> in the source Google Sheet. That filter now happens server-side — the dashboard requests only live rows from the sheet, rather than downloading everything and hiding the rest client-side.</p>
+<p>Customer Journeys uses a separate hardcoded dataset (not sheet-fed), so its messages are cross-matched against the live sheet by title to decide what to show.</p>
+</div>
+
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;">
+<div style="font-size:14px;font-weight:700;margin-bottom:10px;">Data sources</div>
+<ul style="padding-left:18px;">
+<li style="margin-bottom:6px;">Order volumes: Power BI, all B&amp;M markets, 2025 (9 markets refreshed with 2026 transactions)</li>
+<li style="margin-bottom:6px;">Event rates, 9 markets: Ria BI "Global BI notifications" and "Ria Transactions", 1 Jan to 13 Oct 2026</li>
+<li style="margin-bottom:6px;">Message templates — Google Sheet mirroring the Ria transactional message library (B&amp;M + Digital tabs)</li>
+<li style="margin-bottom:6px;">SMS costs (Clickatell) — current contracted telco rates</li>
+<li style="margin-bottom:6px;">SMS costs (Twilio) — contract rate schedule, effective Aug 1, 2025</li>
+<li>Billing units — most Ria SMS messages run ~200 characters, spanning 2 telco billing units of 160 characters each; editable per calculation.</li>
+</ul>
+</div>
+
+</div>
+</div>
+
+<div class="page" id="p8"><div class="page-title">Opt-in rates <span class="page-note" id="p8-page-note">Daily-captured from the Opt-in PowerBI dashboard — global or single country</span></div><div id="p8-content"></div></div>
+<div class="page" id="p9"><div class="page-title">Full Opt-in Impact <span class="page-note">2025 actual SMS cost vs. expected cost if every customer opted in</span></div><div id="p9-content"></div></div>
+<div class="page" id="p10"><div class="page-title">Opt-in cost impact (by journey) <span class="page-note">Same question, modeled by delivery-path journey instead of flat events</span></div><div id="p10-content"></div></div>
+<div class="page" id="p11"><div class="page-title">Iterable Migration <span class="page-note">How much B&amp;M SMS would cost per year, by market and by message</span></div><div id="p11-content"></div></div>
+<div class="page" id="p12"><div class="page-title">FX Client Activations <span class="page-note">Extra SMS cost per year if we turn on more messages in FX Client with Clickatell</span></div><div id="p12-content"></div></div>
+<div class="page" id="p13"><div class="page-title">SMS activation map <span class="page-note">B&amp;M, Ria: what is live in FX Client today</span></div><div id="p13-content"></div></div>
+<div class="page" id="p14"><div class="page-title">Activation roadmap <span class="page-note">B&amp;M, Ria: which events go live, in which markets, each week</span></div><div id="p14-content"></div></div>
+
+</div><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<script src="js/boot.js?v=6.5.0.0"></script>
+</body>
+</html>

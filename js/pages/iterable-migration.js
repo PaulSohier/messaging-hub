@@ -66,7 +66,6 @@ function renderIterableMigration(){
   }).join('');
 
   const html = '<div class="calc-wrap">'
-    + libStatusHtml()
 
     // ── Plain-language explainer ──
     + '<div style="background:var(--purple-bg);border:1px solid var(--purple);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.75;">'

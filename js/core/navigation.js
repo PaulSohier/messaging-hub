@@ -244,7 +244,7 @@ function renderXePlaceholder(){
   }
   holder.classList.add('active');
   const actMode = hubMode === 'activation';
-  holder.innerHTML = '<div class="page-title">Xe <span class="page-note">'+(actMode ? 'Activation map not available' : 'Cost modeling not available')+'</span></div>'
+  holder.innerHTML = '<div class="page-head"><h1 class="page-title">Xe</h1></div>'
     + '<div style="max-width:480px;padding:60px 0;text-align:center;margin:0 auto;">'
     + '<div style="font-size:15px;font-weight:700;margin-bottom:8px;color:var(--text);">'+(actMode ? 'The activation map is Ria B&amp;M only' : 'Cost modeling is Ria B&amp;M only')+'</div>'
     + '<div style="font-size:13px;color:var(--muted);line-height:1.6;">'+(actMode ? 'The activation map shows the live FX Client SMS events for Ria B&amp;M.' : 'The cost calculators are built on Ria B&amp;M SMS data.')+' Xe\'s live customer journeys are available under Messaging.</div>'

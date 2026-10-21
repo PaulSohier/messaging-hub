@@ -17,6 +17,7 @@
     'js/core/state.js',
     'js/core/placeholders.js',
     'js/core/helpers.js',
+    'js/core/status-badge.js',
     'js/core/deep-links.js',
     'js/core/navigation.js',
     'js/pages/activation-roadmap.js',

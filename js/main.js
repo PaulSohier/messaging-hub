@@ -36,4 +36,5 @@ if(activeBrand === 'xe'){
 }
 
 // Load sheet data after initial render
+refreshLibraryStatus();   // shows "Syncing" until the sheet answers
 loadSheetData();

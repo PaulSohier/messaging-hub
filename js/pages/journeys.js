@@ -35,11 +35,21 @@ function iterMatches(text, query){
   return (text||'').toLowerCase().indexOf(query.toLowerCase()) !== -1;
 }
 
+// Badge for the Iterable journey data: green when pulled in the last 2 days, orange when older or unknown
+function journeysStatus(data){
+  if(!data.pulledAt) return {level:'warn', label:'Iterable data: pull date unknown'};
+  const d = new Date(data.pulledAt);
+  const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+  const when = d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) + ' at ' + d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  const details = [{lines:['Pulled from Iterable on '+when+'.', 'The pull runs once a day.']}];
+  if(days > 2) return {level:'warn', label:'Iterable data is '+days+' days old', details:details};
+  return {level:'ok', label:'Iterable data: '+d.toLocaleDateString('en-GB', {day:'numeric', month:'short'}), details:details};
+}
+
 async function renderIterableJourneys(){
   const container = document.getElementById('p2-content');
   const badge = document.getElementById('p2-iter-badge');
   const searchRow = document.getElementById('p2-search-row');
-  const pageNote = document.getElementById('p2-page-note');
   container.innerHTML = '<div style="padding:60px;text-align:center;color:var(--muted);font-size:13px;">Loading journeys…</div>';
 
   let data;
@@ -53,7 +63,7 @@ async function renderIterableJourneys(){
   } catch(e) {
     if(badge) badge.style.display = 'none';
     if(searchRow) searchRow.style.display = 'none';
-    if(pageNote) pageNote.textContent = 'What messages a customer receives — happy and unhappy paths';
+    setStatus('journeys', {level:'error', label:'Journey data not loaded', details:[{lines:['The data file for this brand could not be read.']}]});
     container.innerHTML = '<div class="empty-intent"><div class="empty-intent-title">Could not load Iterable journey data</div>'
       + '<div class="empty-intent-sub">Expected data/iterable-journeys-'+(activeBrand==='xe'?'xe':'ria')+'-prod.json on this branch.</div></div>';
     return;
@@ -61,14 +71,7 @@ async function renderIterableJourneys(){
 
   if(badge) badge.style.display = 'inline-block';
   if(searchRow) searchRow.style.display = 'flex';
-  if(pageNote){
-    if(data.pulledAt){
-      const d = new Date(data.pulledAt);
-      pageNote.textContent = 'Data last pulled: ' + d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}) + ' at ' + d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
-    } else {
-      pageNote.textContent = 'Data last pulled: unknown';
-    }
-  }
+  setStatus('journeys', journeysStatus(data));
   window._iterableJourneyData = data;
   const journeys = data.journeys || [];
   if(!journeys.length){
@@ -452,8 +455,7 @@ function renderJourneys(){
   if(p2Badge) p2Badge.style.display = 'none';
   const p2SearchRow = document.getElementById('p2-search-row');
   if(p2SearchRow) p2SearchRow.style.display = 'none';
-  const p2PageNote = document.getElementById('p2-page-note');
-  if(p2PageNote) p2PageNote.textContent = 'What messages a customer receives — happy and unhappy paths';
+  setStatus('journeys', null);   // the built-in B&M journeys have no data pull date
   const JOURNEYS = HUB_DATA.journeys;
 
   // Only show messages that are marked Live in the sheet — matched by title,

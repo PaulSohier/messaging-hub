@@ -161,8 +161,31 @@ mark{background:#FCE68A;color:inherit;border-radius:2px;padding:0 1px;}
 /* PAGES */
 .page{display:none;padding:24px 32px 48px;}
 .page.active{display:block;}
-.page-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:18px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.page-note{font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--hint);}
+/* Page header: title on the left, status badge on the right (same on every page) */
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:34px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);position:relative;}
+.page-title{font-size:19px;font-weight:700;letter-spacing:-.01em;color:var(--text);line-height:1.3;}
+.status-slot{flex-shrink:0;position:relative;}
+
+/* Status badge: green = ok, orange = problem, red = offline, grey = loading. Details open DOWNWARD. */
+:root{--warn:#B25E09;--warn-text:#8A4B00;--warn-bg:#FFF3E0;--err-text:#B02A2A;}
+.hub-status{position:relative;display:inline-block;}
+.hub-status-pill{display:inline-flex;align-items:center;gap:7px;font-family:inherit;font-size:12px;font-weight:600;line-height:1.2;padding:6px 12px;border-radius:999px;border:1px solid transparent;cursor:default;}
+.hub-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.hub-status--ok .hub-status-pill{background:var(--live-bg);color:var(--live);border-color:#BFE3C8;}
+.hub-status--ok .hub-status-dot{background:var(--live);}
+.hub-status--warn .hub-status-pill{background:var(--warn-bg);color:var(--warn-text);border-color:#F3CF9B;}
+.hub-status--warn .hub-status-dot{background:var(--warn);}
+.hub-status--error .hub-status-pill{background:var(--critical-bg);color:var(--err-text);border-color:#F0BDBD;}
+.hub-status--error .hub-status-dot{background:var(--critical);}
+.hub-status--loading .hub-status-pill{background:var(--draft-bg);color:#55575E;border-color:var(--border-mid);}
+.hub-status--loading .hub-status-dot{background:var(--draft);animation:hub-pulse 1.2s ease-in-out infinite;}
+@keyframes hub-pulse{50%{opacity:.3;}}
+.hub-status-tip{visibility:hidden;opacity:0;position:absolute;top:100%;right:0;z-index:40;width:420px;max-width:min(420px,calc(100vw - 32px));max-height:60vh;overflow-y:auto;margin-top:8px;padding:12px 14px;background:var(--card);color:var(--text);border:1px solid var(--border-mid);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);font-size:12px;line-height:1.55;transition:opacity .12s;}
+.hub-status-tip::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px;}
+.hub-status:hover .hub-status-tip,.hub-status:focus-within .hub-status-tip{visibility:visible;opacity:1;}
+.hub-status-h{font-weight:700;margin-top:10px;margin-bottom:2px;}
+.hub-status-l{margin-top:3px;color:#3D4048;}
+.hub-status-h:first-child,.hub-status-l:first-child{margin-top:0;}
 
 /* EMPTY INTENT STATE */
 .empty-intent{padding:48px 24px;text-align:center;border:1px dashed var(--border-mid);border-radius:var(--radius);background:var(--card);}

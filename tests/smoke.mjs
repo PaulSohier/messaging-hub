@@ -57,11 +57,50 @@ try {
   await page.evaluate(() => window.setBrand('xe')); await page.waitForTimeout(600);
   await crawl('Xe explore');
   for (const mode of ['tools', 'activation']) { await page.evaluate((m) => window.setHubMode(m), mode); await visit('Xe ' + mode); }
+
+  // Every page has the same header: one h1 title, no grey note, and a status badge only where it makes sense
+  state.where = 'page header';
+  const heads = await page.evaluate(() => Array.from(document.querySelectorAll('.page')).map((p) => ({
+    id: p.id, h1: p.querySelectorAll(':scope > .page-head > h1.page-title').length, notes: p.querySelectorAll('.page-note').length,
+  })));
+  for (const h of heads) {
+    if (h.h1 !== 1) fail('[' + h.id + '] the page needs exactly one header with an h1 title (.page-head > h1.page-title), found ' + h.h1);
+    if (h.notes) fail('[' + h.id + '] has a grey page note; use the status badge or the page content instead');
+  }
+  const badge = (id) => page.evaluate((id) => { const b = document.querySelector('#' + id + ' .hub-status'); return b ? b.className.replace('hub-status ', '').replace('hub-status--', '') : null; }, id);
+  const show = async (mode, i) => { await page.evaluate((m) => window.setHubMode(m), mode); await page.waitForTimeout(300); await page.locator('#sb-nav .nav-tab').nth(i).evaluate((e) => e.click()); await page.waitForTimeout(600); };
+  await page.evaluate(() => { window.setBrand('ria'); window.setHubMode('explore'); }); await page.waitForTimeout(400);
+  if (await badge('p0') !== 'ok') fail('[p0] the Messages Library badge should be green when the sheet is synced, it is ' + await badge('p0'));
+  await show('tools', 1);
+  const costBadge = await badge('p11');
+  if (!['ok', 'warn'].includes(costBadge)) fail('[p11] the cost page badge should be green or orange when synced, it is ' + costBadge);
+  if (await badge('p3') !== null) fail('[p3] the older cost pages should have no badge');
 } catch (e) {
   fail('the test stopped early: ' + String(e.message).split('\n')[0].slice(0, 200));
 } finally {
-  await hub.browser.close(); server.close();
+  await hub.browser.close();
 }
+
+// When the sheet cannot be reached the badge must be red, and its details must open DOWNWARD and stay on screen
+{
+  const off = await openHub({ base, sheet: 'fail' });
+  try {
+    off.state.where = 'offline badge';
+    const status = await off.page.evaluate(() => { const b = document.querySelector('.page.active .hub-status'); return b ? b.className : ''; });
+    if (!/hub-status--error/.test(status)) fail('[offline] the badge should be red when the Messages Library cannot be reached, found "' + status + '"');
+    await off.page.hover('.page.active .hub-status-pill'); await off.page.waitForTimeout(300);
+    const box = await off.page.evaluate(() => {
+      const a = document.querySelector('.page.active'); const pill = a.querySelector('.hub-status-pill').getBoundingClientRect(); const tip = a.querySelector('.hub-status-tip');
+      const t = tip.getBoundingClientRect(); return { pillBottom: pill.bottom, tipTop: t.top, left: t.left, right: t.right, visible: getComputedStyle(tip).visibility === 'visible', width: window.innerWidth };
+    });
+    if (!box.visible) fail('[offline] the badge details do not open on hover');
+    if (box.tipTop < box.pillBottom) fail('[offline] the badge details open upward, they must open downward');
+    if (box.left < 0 || box.right > box.width) fail('[offline] the badge details run off the screen');
+  } catch (e) { fail('[offline] the test stopped early: ' + String(e.message).split('\n')[0].slice(0, 200)); }
+  finally { await off.browser.close(); }
+  problems += off.problems.length;
+}
+server.close();
 problems += hub.problems.length;
 console.log('\nChecked ' + views + ' views, ' + scripts.length + ' script files.');
 if (problems) { console.log(problems + ' problem(s) found.'); process.exit(1); }

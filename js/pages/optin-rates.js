@@ -356,8 +356,12 @@ async function renderOptin(){
     return;
   }
   const latest = snapshots[snapshots.length-1];
-  const pageNote = document.getElementById('p8-page-note');
-  if(pageNote) pageNote.textContent = snapshots.length+' day'+(snapshots.length!==1?'s':'')+' captured · latest: '+latest.date;
+  const ageDays = Math.floor((Date.now() - new Date(latest.date+'T12:00:00').getTime()) / 86400000);
+  setStatus('optin', {
+    level: ageDays > 3 ? 'warn' : 'ok',
+    label: ageDays > 3 ? 'Opt-in data is '+ageDays+' days old' : 'Opt-in data: '+latest.date,
+    details: [{lines:[snapshots.length+' day'+(snapshots.length!==1?'s':'')+' captured. Latest: '+latest.date+'.']}]
+  });
 
   // Country options come from whichever snapshot has the fullest country list
   const countryMap = {};

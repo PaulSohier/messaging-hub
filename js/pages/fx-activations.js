@@ -299,7 +299,6 @@ function renderFxScenario(){
   const inp = 'padding:8px 12px;border-radius:7px;border:1px solid var(--border-mid);background:var(--card);font-size:13px;color:var(--text);';
 
   const html = '<div class="calc-wrap">'
-    + libStatusHtml()
     + '<div id="fxs-today"></div>'
     + '<div id="fxs-spend"></div>'
     + '<div style="background:var(--purple-bg);border:1px solid var(--purple);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.75;">'

@@ -83,7 +83,6 @@ function renderOptInImpact(){
   rows += '<tr><td colspan="5" style="padding:8px 10px;"><button onclick="addOptInRow()" style="font-size:11px;font-weight:600;color:var(--purple);background:var(--purple-bg);border:1px solid var(--purple);border-radius:6px;padding:5px 12px;cursor:pointer;">+ Add event</button></td></tr>';
 
   const html = '<div class="calc-wrap">'
-    + libStatusHtml()
 
     // ── Presentation view (what Nick sees) ──────────────────────────
     + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:22px;">'

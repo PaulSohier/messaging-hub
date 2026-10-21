@@ -1,4 +1,4 @@
-# Messaging Hub V6.5.0.0
+# Messaging Hub V6.6.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -164,7 +164,7 @@ Sheet structure:
 - **Live SMS events per market:** every row with Channel = SMS, a market and an event counts as live there. This feeds the Activation map, FX Client Activations, Iterable Migration and the "what is live today" scope for markets that are not measured. For the 9 measured markets, what is live today comes from the real 2026 data, not from the library, so a new message in one of them changes the cost only once the Ria BI data shows SMS for it (or when it is added to the code as live).
 - **Billing units per event:** for each event, the Hub takes every live US SMS message, counts its units (160 characters = 1 unit, whole numbers, from the real text length) and uses the most common value (a tie takes the lower value). This is the same method as the original model. So if a message is made shorter in the library, its cost drops on the next load. This feeds Full Opt-in Impact, Iterable Migration, FX Client Activations and the default billing units of the older SMS calculators.
 
-Each of these pages shows a status box at the top: "Synced with the Messages Library" with the time, the number of live SMS messages and markets, what changed compared with the built-in snapshot, and how many live library events are not costed because the cost model has no participation rate for them. If the sheet cannot load, the pages use the values written in the code and say so.
+The status of the library is shown as a small badge at the top right of the page header (see "Page header and status badge" in the Project structure). **Green:** "Synced with Messages Library". **Orange:** synced, but some live library events are not costed because the cost model has no participation rate for them (cost pages only). **Red:** "Messages Library offline", the sheet could not be loaded and the pages use the values written in the code. **Grey:** still syncing. Hover over the badge (or tab to it) to see the time, the number of live SMS messages and markets, what changed compared with the built-in snapshot, and the list of events not costed.
 
 **Fixed numbers kept in data files (edit the file and push, no code change):** country rates, order volumes and the 2025 US events are in `data/shared-rates.json`. The 2026 event counts of the 9 measured markets are in `data/observed-2026-rates.json`. The B&M customer journeys are in `data/bm-journeys.json`. The world map shapes are in `data/act-geo.json`. **Still hardcoded in the `js/` files:** participation rates (US 2026 rates, plus the 2025 US counts for older events), Iterable contract figures and the Global Agent country list. Changing any of those means a code edit and a new push. The Opt-in cost impact (by journey) and the Global deployment pages are older models and do not follow the library: the first has its own fixed message counts per journey, and the second use the measured 2025 SMS per order.
 
@@ -230,7 +230,7 @@ Since V6.0.0.0 the Hub is split into several files, and since V6.1.0.0 its fixed
 index.html              Page shell (sidebar and page containers), loads the files below
 css/hub.css             All styles
 assets/                 Logos
-js/core/                Shared code: data tables, state, helpers, navigation, sheet sync, observed rates
+js/core/                Shared code: data tables, state, helpers, status badge, navigation, sheet sync, observed rates
 js/pages/               One file per page or group of pages (library, journeys, costs, opt-in, activation...)
 js/boot.js              Loads the data files, then the scripts below in order
 js/main.js              Start up: first render and sheet load (runs last)
@@ -246,13 +246,15 @@ The JavaScript files are normal scripts, not modules. They share one global scop
 
 Each JS file starts with a one line comment saying what it contains.
 
+**Page header and status badge.** Every page starts with the same header: `<div class="page-head"><h1 class="page-title">Title</h1><div class="status-slot" data-status="KEY"></div></div>`. There is no grey sentence under or next to the title. The slot at the right holds one status badge, filled by `setStatus(KEY, {level, label, details})` in `js/core/status-badge.js`. Levels: `ok` (green), `warn` (orange), `error` (red), `loading` (grey). The details open below the badge on hover, keyboard focus or tap. Keys in use: `library` (Message flow map, Messages Library), `cost` (Full Opt-in Impact, Iterable Migration, FX Client Activations, SMS activation map), `journeys` (date of the Iterable pull), `optin` (date of the latest opt-in capture). A page without a data source has no slot. The smoke test checks that every page has exactly one h1 header and no grey note, and that the badge is green when synced, red when offline, and opens downward.
+
 To test on your computer, serve the folder instead of double clicking `index.html`, for example with `python -m http.server` in the repository folder and then open `http://localhost:8000`. The Hub reads its data with `fetch`, which browsers block for files opened directly from disk.
 
 ## Automatic check
 
 The workflow **Smoke test** runs on every push to `main` and on every pull request. It runs two tests, one after the other. A red cross on a commit means something is broken. It does not stop the site from being published, because GitHub Pages serves `main` directly, so look at the result after each push.
 
-**1. Smoke test** (`tests/smoke.mjs`). It starts the Hub in a real browser and opens all 22 views (Ria B&M, Ria Digital and Xe). It fails if any page has a JavaScript error, a file is missing or returns an error, a data file is not valid JSON, a page is empty or shows a load error, or a script file is not listed in `js/boot.js`. It checks that pages work, not that numbers are right.
+**1. Smoke test** (`tests/smoke.mjs`). It starts the Hub in a real browser and opens all 22 views (Ria B&M, Ria Digital and Xe). It fails if any page has a JavaScript error, a file is missing or returns an error, a data file is not valid JSON, a page is empty or shows a load error, or a script file is not listed in `js/boot.js`. It also checks the page header and the status badge (see Project structure). It checks that pages work, not that numbers are right.
 
 **2. Cost model test** (`tests/cost-model.mjs`). It checks the numbers behind the cost pages:
 - Billing units: 160 characters = 1 unit, 161 = 2, and the most common value of the live US messages wins (a tie takes the lower one).

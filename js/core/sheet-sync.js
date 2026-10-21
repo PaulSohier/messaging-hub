@@ -33,7 +33,7 @@ const SHEET_COLUMNS = ["Product type","Channel","Event that triggers the message
      whole numbers) of every live US SMS message, then the most common value
      (a tie takes the lower value). Same method as the original cost model.
    The values written in the cost pages stay as a fallback if the sheet cannot load. */
-const LIB = {synced:false, at:null, rows:0, markets:0, live:{}, units:{}, notCosted:[], changes:[]};
+const LIB = {synced:false, tried:false, at:null, rows:0, markets:0, live:{}, units:{}, notCosted:[], changes:[]};
 const LIB_UNIT_CHARS = 160;
 
 function libSync(bmRows){
@@ -87,27 +87,10 @@ function libApplyToModel(EV, LIVE){
   });
   Object.keys(before).forEach(function(c){ if(!LIVE[c]) ch.push(c+': '+before[c].map(function(i){ return '- '+EV[i].n; }).join(', ')); });
   LIB.changes = ch;
+  if(typeof refreshLibraryStatus === 'function') refreshLibraryStatus();   // the badge lists what changed (the unit tests load this file without the page)
 }
 
 function libUnits(name, fallback){ return (LIB.synced && LIB.units[name]) || fallback; }
-
-function libStatusHtml(){
-  const base = 'font-size:11px;line-height:1.6;border-radius:8px;padding:8px 12px;margin-bottom:14px;';
-  if(!LIB.synced){
-    return '<div style="'+base+'background:#FFF7ED;border:1px solid var(--orange);color:#7A3300;"><strong>Built-in values.</strong> The Messages Library has not loaded yet, so live events and billing units come from the snapshot written in the Hub. This page updates when the library loads.</div>';
-  }
-  const t = LIB.at ? LIB.at.toTimeString().slice(0,5) : '';
-  const nc = LIB.notCosted.length;
-  let h = '<div style="'+base+'background:#F0FBF4;border:1px solid #97C459;color:#27500A;"><strong>Synced with the Messages Library</strong> at '+t+': '
-    + LIB.rows+' live SMS messages in '+LIB.markets+' markets. Live events come from the library, and billing units from the real length of the live US messages.';
-  if(LIB.changes.length){
-    h += '<br><strong>Changed since the built-in snapshot:</strong> '+esc(LIB.changes.slice(0,4).join(' | '))+(LIB.changes.length > 4 ? ' | and '+(LIB.changes.length-4)+' more' : '')+'.';
-  }
-  if(nc){
-    h += '<br><span title="'+esc(LIB.notCosted.join(', '))+'">'+nc+' live event'+(nc>1?'s are':' is')+' in the library but not in the cost model, so '+(nc>1?'they are':'it is')+' not costed yet (hover to see which).</span>';
-  }
-  return h+'</div>';
-}
 
 /* A filter applied on the Google Sheet hides rows from this fetch too. To avoid that, the Hub first reads a
    mirror tab ("Hub feed B&M", "Hub feed Digital"). A mirror tab is made of one formula (see README), and a

@@ -48,7 +48,6 @@ async function renderActivation(){
 
   document.getElementById('p13-content').innerHTML =
     '<div class="act-wrap">'
-    + libStatusHtml()
     + '<div class="act-intro"><b>What is activated today.</b> Only B&amp;M SMS events that are live in FX Client, for Ria. Each market is compared with the United States ('+REF+' events live). Volumes and costs are real 2026 figures for the 9 measured markets (US, Canada, Australia, France, Spain, Germany, Italy, UK, Belgium) and estimates, from the European average, for the others. Click a market to see what it sends today and what would happen if an event is activated.</div>'
     + '<div class="act-main">'
     + '<section class="act-card act-mapcard">'
@@ -259,6 +258,8 @@ async function loadSheetData() {
   if(indicator) indicator.textContent = added > 0 ? `${added} loaded` : 'Sheet in sync';
 
   libSync(bmRows);   // live events and billing units for every cost page and the Activation map
+  LIB.tried = true;
+  refreshLibraryStatus();
 
   populateP1CountryOptions();
 
