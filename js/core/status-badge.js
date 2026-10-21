@@ -31,31 +31,14 @@ function statusHtml(s){
     + '</div>';
 }
 
-// Messages Library status. kind 'cost' also reports the live events that have no cost line yet.
-function libStatus(kind){
+// Messages Library status: green when synced, red when offline, grey while syncing. No details, no hover.
+function libStatus(){
   if(!LIB.tried) return {level:'loading', label:'Syncing with Messages Library'};
-  if(!LIB.synced){
-    return {level:'error', label:'Messages Library offline', details:[{lines:[
-      'The Messages Library did not return any live SMS messages. The sheet could not be reached, or it is empty.',
-      'Live events and billing units come from the built-in snapshot, so the numbers can be out of date.',
-      'Reload the page to try again.'
-    ]}]};
-  }
-  const t = LIB.at ? LIB.at.toTimeString().slice(0,5) : '';
-  const details = [{lines:[
-    'Synced at '+t+': '+LIB.rows+' live SMS messages in '+LIB.markets+' markets.',
-    'Live events come from the library, and billing units from the real length of the live US messages.'
-  ]}];
-  if(LIB.changes.length) details.push({title:'Changed since the built-in snapshot ('+LIB.changes.length+')', lines:LIB.changes});
-  const nc = kind === 'cost' ? LIB.notCosted : [];
-  if(nc.length){
-    details.push({title:'Not costed yet ('+nc.length+')', lines:['These events are live in the library but not in the cost model, so the totals leave them out.'].concat(nc)});
-    return {level:'warn', label:'Synced with Messages Library, '+nc.length+' event'+(nc.length>1?'s':'')+' not costed', details:details};
-  }
-  return {level:'ok', label:'Synced with Messages Library', details:details};
+  if(!LIB.synced) return {level:'error', label:'Messages Library offline'};
+  return {level:'ok', label:'Synced with Messages Library'};
 }
 
 function refreshLibraryStatus(){
-  setStatus('library', libStatus('library'));
-  setStatus('cost', libStatus('cost'));
+  setStatus('library', libStatus());
+  setStatus('cost', libStatus());
 }

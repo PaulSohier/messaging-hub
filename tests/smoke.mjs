@@ -73,7 +73,7 @@ try {
   if (await badge('p0') !== 'ok') fail('[p0] the Messages Library badge should be green when the sheet is synced, it is ' + await badge('p0'));
   await show('tools', 1);
   const costBadge = await badge('p11');
-  if (!['ok', 'warn'].includes(costBadge)) fail('[p11] the cost page badge should be green or orange when synced, it is ' + costBadge);
+  if (costBadge !== 'ok') fail('[p11] the cost page badge should be green when synced, it is ' + costBadge);
   if (await badge('p3') !== null) fail('[p3] the older cost pages should have no badge');
 } catch (e) {
   fail('the test stopped early: ' + String(e.message).split('\n')[0].slice(0, 200));
@@ -81,21 +81,27 @@ try {
   await hub.browser.close();
 }
 
-// When the sheet cannot be reached the badge must be red, and its details must open DOWNWARD and stay on screen
+// When the sheet cannot be reached the badge must be red, with no hover box. The badges that have details (data dates) must open DOWNWARD and stay on screen.
 {
   const off = await openHub({ base, sheet: 'fail' });
   try {
     off.state.where = 'offline badge';
-    const status = await off.page.evaluate(() => { const b = document.querySelector('.page.active .hub-status'); return b ? b.className : ''; });
-    if (!/hub-status--error/.test(status)) fail('[offline] the badge should be red when the Messages Library cannot be reached, found "' + status + '"');
+    const status = await off.page.evaluate(() => { const b = document.querySelector('.page.active .hub-status'); return { cls: b ? b.className : '', tips: document.querySelectorAll('.page.active .hub-status-tip').length }; });
+    if (!/hub-status--error/.test(status.cls)) fail('[offline] the badge should be red when the Messages Library cannot be reached, found "' + status.cls + '"');
+    if (status.tips) fail('[offline] the Messages Library badge should have no hover box');
+    off.state.where = 'badge hover';
+    await off.page.evaluate(() => { window.setHubMode('explore'); window.setStructuralAudience('digital'); });
+    await off.page.waitForTimeout(400);
+    await off.page.locator('#sb-nav .nav-tab').nth(2).evaluate((e) => e.click());
+    await off.page.waitForSelector('.page.active .hub-status-tip', { state: 'attached', timeout: 5000 });
     await off.page.hover('.page.active .hub-status-pill'); await off.page.waitForTimeout(300);
     const box = await off.page.evaluate(() => {
       const a = document.querySelector('.page.active'); const pill = a.querySelector('.hub-status-pill').getBoundingClientRect(); const tip = a.querySelector('.hub-status-tip');
       const t = tip.getBoundingClientRect(); return { pillBottom: pill.bottom, tipTop: t.top, left: t.left, right: t.right, visible: getComputedStyle(tip).visibility === 'visible', width: window.innerWidth };
     });
-    if (!box.visible) fail('[offline] the badge details do not open on hover');
-    if (box.tipTop < box.pillBottom) fail('[offline] the badge details open upward, they must open downward');
-    if (box.left < 0 || box.right > box.width) fail('[offline] the badge details run off the screen');
+    if (!box.visible) fail('[badge hover] the badge details do not open on hover');
+    if (box.tipTop < box.pillBottom) fail('[badge hover] the badge details open upward, they must open downward');
+    if (box.left < 0 || box.right > box.width) fail('[badge hover] the badge details run off the screen');
   } catch (e) { fail('[offline] the test stopped early: ' + String(e.message).split('\n')[0].slice(0, 200)); }
   finally { await off.browser.close(); }
   problems += off.problems.length;
