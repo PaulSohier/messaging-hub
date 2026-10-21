@@ -3,7 +3,9 @@
   "private": true,
   "description": "Ria B&M Messaging Hub. The only dev dependency is the browser used by the smoke test.",
   "scripts": {
-    "test": "node tests/smoke.mjs"
+    "test": "node tests/smoke.mjs && node tests/cost-model.mjs",
+    "test:smoke": "node tests/smoke.mjs",
+    "test:cost": "node tests/cost-model.mjs"
   },
   "devDependencies": {
     "playwright": "1.56.0"
