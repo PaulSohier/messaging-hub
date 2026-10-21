@@ -66,28 +66,34 @@ jobs:
 
       - name: Select environment config
         id: env
+        # The trigger values are passed in as environment variables, not pasted
+        # into the script text, so nothing typed in a manual run is ever run as code.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          IN_ENVIRONMENT: ${{ github.event.inputs.environment }}
+          IN_JOURNEY_IDS: ${{ github.event.inputs.journey_ids }}
         run: |
-          # Fixed, hand-picked Xe journey list (Paul, Sep 2026 — chosen
-          # directly in Iterable's own journey/folder view, enabled/live
-          # journeys only). Xe's campaigns don't use a Transactional
-          # label/category the way Ria's do, so this environment is always
-          # pulled by explicit ID list, never by category filter. Update
-          # this line by hand if Paul's list changes.
-          XE_JOURNEY_IDS="300450,363179,395339,101943,462373,102004,204170,542415,102003,101965,173294,173285,173292,173289,426955,474938,312958,206237,206225,204815,101966,936126,613188,101949,101978,101947,375183,206229,318571,538831,523467,398882,398883,749959,749941"
+          # Fixed, hand-picked Xe journey list (Paul, Sep 2026). It now lives in
+          # config/xe-journey-ids.txt, one ID per line, so it can be changed
+          # without touching this workflow. Xe's campaigns don't use a
+          # Transactional label/category the way Ria's do, so this environment
+          # is always pulled by explicit ID list, never by category filter.
+          XE_JOURNEY_IDS="$(grep -v '^#' config/xe-journey-ids.txt | tr -d ' \r' | grep -v '^$' | paste -sd, -)"
 
-          # A scheduled run has no "inputs" at all (github.event.inputs.* is
-          # blank), unlike a manual workflow_dispatch run — so the effective
+          # A scheduled run has no "inputs" at all (the IN_ variables are
+          # blank), unlike a manual workflow_dispatch run, so the effective
           # environment can't just read the dropdown directly here. There
-          # are two schedules now (see the "on:" block above); the exact
+          # are two schedules (see the "on:" block above); the exact
           # cron string that fired tells us which one this is.
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            if [ "${{ github.event.schedule }}" = "18 8 * * *" ]; then
+          if [ "$EVENT_NAME" = "schedule" ]; then
+            if [ "$SCHEDULE" = "18 8 * * *" ]; then
               ENVIRONMENT="xe_digital_prod"
             else
               ENVIRONMENT="ria_digital_prod"
             fi
           else
-            ENVIRONMENT="${{ github.event.inputs.environment }}"
+            ENVIRONMENT="$IN_ENVIRONMENT"
           fi
           echo "environment=$ENVIRONMENT" >> "$GITHUB_OUTPUT"
 
@@ -109,10 +115,10 @@ jobs:
           # Every other environment behaves as before: use whatever was
           # typed into the manual field (blank means a full, category-scoped
           # pull for Ria; blank on Sandbox means a full, unfiltered pull).
-          if [ "$ENVIRONMENT" = "xe_digital_prod" ] && { [ "${{ github.event_name }}" = "schedule" ] || [ -z "${{ github.event.inputs.journey_ids }}" ]; }; then
+          if [ "$ENVIRONMENT" = "xe_digital_prod" ] && { [ "$EVENT_NAME" = "schedule" ] || [ -z "$IN_JOURNEY_IDS" ]; }; then
             echo "journey_ids=$XE_JOURNEY_IDS" >> "$GITHUB_OUTPUT"
           else
-            echo "journey_ids=${{ github.event.inputs.journey_ids }}" >> "$GITHUB_OUTPUT"
+            echo "journey_ids=$IN_JOURNEY_IDS" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Fetch and shape Iterable data

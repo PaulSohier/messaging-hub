@@ -1,4 +1,4 @@
-# Messaging Hub V6.1.0.0
+# Messaging Hub V6.2.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -182,7 +182,7 @@ Three data files, all produced by `scripts/pull-iterable-journeys.js` through th
 
 The two Production pulls are automatic. They run three minutes apart so their commits do not collide. The Hub reads the Ria file for Ria Digital and the Xe file for Xe. The Sandbox file is kept for testing and is not read by the Hub.
 
-Ria Prod uses the same defaults as a manual run (enabled journeys, Transactional and Transaction status categories). Xe Prod uses a fixed hand-picked list of journey IDs, because Xe's campaigns do not use a Transactional label the way Ria's do, so a category filter would not work. That list lives in `XE_JOURNEY_IDS` in the workflow file.
+Ria Prod uses the same defaults as a manual run (enabled journeys, Transactional and Transaction status categories). Xe Prod uses a fixed hand-picked list of journey IDs, because Xe's campaigns do not use a Transactional label the way Ria's do, so a category filter would not work. That list lives in `config/xe-journey-ids.txt`, one journey ID per line. Edit that file and push to change it, no workflow change needed.
 
 Repo secrets: `ITERABLE_SANDBOX_API_KEY`, `ITERABLE_RIA_PROD_API_KEY` and `ITERABLE_XE_PROD_API_KEY`. All accounts are on the same Iterable data centre (`api.iterable.com`), confirmed Sep 2026.
 
@@ -236,7 +236,8 @@ js/boot.js              Loads the data files, then the scripts below in order
 js/main.js              Start up: first render and sheet load (runs last)
 data/                   JSON data read by the pages (rates, observed 2026 rates, B&M journeys, Iterable pulls, opt-in, roadmap, map shapes)
 scripts/                Node script used by the Iterable pull workflow
-.github/workflows/      Deploy, PR preview and Iterable pull
+config/                 Settings read by the workflow (Xe journey IDs)
+.github/workflows/      Iterable pull, the only workflow (runs daily)
 ```
 
 The JavaScript files are normal scripts, not modules. They share one global scope, so **the order of the list in `js/boot.js` matters**. A file can use anything defined in the files listed above it. When you add a file, add it to that list in the right place. `js/boot.js` first loads the data files into `window.HUB_DATA`, and only then runs the scripts.
@@ -247,7 +248,7 @@ To test on your computer, serve the folder instead of double clicking `index.htm
 
 ## How to update the dashboard
 
-Change the files in this repository, commit and push to `main`. GitHub Pages serves the `main` branch directly and the URL stays the same.
+Change the files in this repository, commit and push to `main`. GitHub Pages serves the `main` branch directly (Settings, Pages, Source: Deploy from a branch, `main`, `/ (root)`) and the URL stays the same. There is no deploy workflow, so a push is live after a minute or two. The same applies to the daily data commits made by the Iterable pull workflow. Do not add a `gh-pages` branch, it is not used.
 
 Each new version gets a version number (format VX.X.X.X: major, minor, patch, build). Update it in the title of this README and in the `?v=` part of the two links in `index.html` (the CSS link at the top and the `js/boot.js` link at the bottom). That `?v=` value makes browsers load the new files instead of old cached ones. `js/boot.js` passes it on to every file it loads.
 

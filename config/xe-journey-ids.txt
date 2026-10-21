@@ -1,0 +1,39 @@
+# Xe Digital Prod journeys pulled every day by the Pull Iterable journey data workflow.
+# One journey ID per line. Lines starting with # are ignored.
+# Chosen by hand in Iterable (enabled and live journeys only, Sep 2026).
+# Xe campaigns have no Transactional category, so Xe is always pulled by this list.
+300450
+363179
+395339
+101943
+462373
+102004
+204170
+542415
+102003
+101965
+173294
+173285
+173292
+173289
+426955
+474938
+312958
+206237
+206225
+204815
+101966
+936126
+613188
+101949
+101978
+101947
+375183
+206229
+318571
+538831
+523467
+398882
+398883
+749959
+749941
