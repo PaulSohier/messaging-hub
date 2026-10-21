@@ -1,4 +1,4 @@
-# Messaging Hub V6.7.0.0
+# Messaging Hub V6.8.0.0
 
 Internal dashboard mapping all customer-facing messages across brands, channels, intents and markets, plus the cost modeling behind them and a map of what is live today.
 
@@ -44,23 +44,25 @@ Daily opt-in figures captured from the Opt-in Power BI dashboard, global or by c
 
 ### Costs
 
-The Costs menu has three main pages: Full Opt-in Impact, Iterable Migration and FX Client Activations. Five older models sit in a collapsed group called **Older models** in the same menu (click the group title to open it). They are kept with all their code and data for future use, and their links still work. Iterable Migration and FX Client Activations both let you pick the carrier, markets and events, so they cover most of what the SMS Costs, Twilio and Global deployment pages did. The one thing SMS Costs had that they did not, changing the billing units of a message, is now in FX Client Activations.
+**Menu today.** The Costs menu shows one page, How we calculate this. The cost calculators are not in the menu, but they all still open by link and keep their code and data: Full Opt-in Impact (`?page=full-opt-in-impact`), Iterable Migration (`?page=iterable-migration`) and five older models. **FX Client Activations moved to the Activation menu** (after the SMS activation map and the Activation roadmap). A new cost calculator built on the 2026 data is planned for Costs. To hide or show a page, move it in `TOOLS_NAV` or `ACTIVATION_NAV` in `js/core/navigation.js` (a section with `hidden:true` is not shown, and its pages still work by link).
+
+Iterable Migration and FX Client Activations both let you pick the carrier, markets and events, so they cover most of what the SMS Costs, Twilio and Global deployment pages did. The one thing SMS Costs had that they did not, changing the billing units of a message, is now in FX Client Activations.
 
 All cost pages carry a "Ria sending countries only" checkbox. Turned on, it removes the Global Agent markets, leaving the markets where Ria itself owns the messaging. The United States stays included either way, because an agent manages the sending tooling there but Ria still owns the customer communication.
 
-**SMS Costs** (Older models)
+**SMS Costs** (not in the menu, opens by link)
 Country-level SMS cost projection based on 2025 order volumes and contracted Clickatell rates. Includes an opt-in scenario slider, using today's real opt-in rate of 64 percent as the baseline.
 
-**Twilio SMS calculator** (Older models)
+**Twilio SMS calculator** (not in the menu, opens by link)
 The same model using Twilio's contracted rates (contract rate schedule, effective Aug 1, 2025). Covers only the 57 countries priced in that contract. US and Canada rates exclude an additional, unquantified carrier-fee surcharge. 11 priced countries have no order-volume data on file and need manual entry.
 
-**Global deployment cost** and **Global deployment Twilio** (Older models)
+**Global deployment cost** and **Global deployment Twilio** (not in the menu, opens by link)
 Executive views of projected spend across all markets, sortable and filterable by region or country. The Twilio version covers the 46 markets that are both Twilio-priced and have order data.
 
 **Full Opt-in Impact**
 Answers one question: what would SMS cost if every customer opted in. It builds an average messages-per-order figure from the real 2025 US event rates, each weighted by how often it fires and by its real SMS segment count, then scales that from today's opt-in rate up to 100 percent. Headline figures and charts sit at the top, with the full editable event table collapsed underneath. Entered values are saved in the browser.
 
-**Opt-in cost impact (by journey)** (Older models)
+**Opt-in cost impact (by journey)** (not in the menu, opens by link)
 The same question modelled a different way, grouped by delivery path rather than by individual event. Cash pickup counts as one journey sending two messages, for example. Kept alongside the event version rather than replacing it, so the two approaches can be compared.
 
 **Iterable Migration**
@@ -246,7 +248,7 @@ The JavaScript files are normal scripts, not modules. They share one global scop
 
 Each JS file starts with a one line comment saying what it contains.
 
-**Links and the Back button.** Every page has its own readable link, for example `index.html?page=iterable-migration`. Other parts of the view are added when they apply: `brand=xe`, `aud=digital`, `intent=...`, and on the flow map `event=...` and `country=...` (the default country stays out of the link). The names are listed in `PAGE_META` in `js/core/deep-links.js`, and every new page needs an entry there. Moving to another page, mode, brand or audience adds a browser history entry, so Back and Forward work. Changing a filter changes the link without adding an entry. The menu items are real links, so "open in new tab" and "copy link" work. The browser tab title shows the page name. **Old links keep working:** `?tab=p11` opens the same page and is rewritten to the readable form, and share links of messages (`?tab=p1&msg=...`) still jump to the message. An unknown page name opens the start page. The smoke test checks all of this.
+**Links and the Back button.** Every page has its own readable link, for example `index.html?page=iterable-migration`. Other parts of the view are added when they apply: `brand=xe`, `aud=digital`, `intent=...`, and on the flow map `event=...` and `country=...` (the default country stays out of the link). The names are listed in `PAGE_META` in `js/core/deep-links.js`, and every new page needs an entry there. Moving to another page, mode, brand or audience adds a browser history entry, so Back and Forward work. Changing a filter changes the link without adding an entry. The menu items are real links, so "open in new tab" and "copy link" work. The browser tab title shows the page name. **Old links keep working:** `?tab=p11` opens the same page and is rewritten to the readable form, and share links of messages (`?tab=p1&msg=...`) still jump to the message. An unknown page name opens the start page. The smoke test checks all of this. It also opens the pages that are not in the menu by link, and checks the Costs and Activation menus.
 
 **Page header and status badge.** Every page starts with the same header: `<div class="page-head"><h1 class="page-title">Title</h1><div class="status-slot" data-status="KEY"></div></div>`. There is no grey sentence under or next to the title. The slot at the right holds one status badge, filled by `setStatus(KEY, {level, label, details})` in `js/core/status-badge.js`. Levels: `ok` (green), `warn` (orange), `error` (red), `loading` (grey). If a status has `details`, they open below the badge on hover, keyboard focus or tap; the library badge has none. Keys in use: `library` (Message flow map, Messages Library), `cost` (Full Opt-in Impact, Iterable Migration, FX Client Activations, SMS activation map), `journeys` (date of the Iterable pull), `optin` (date of the latest opt-in capture). A page without a data source has no slot. The smoke test checks that every page has exactly one h1 header and no grey note, and that the library badge is green when synced and red when offline, and that badges with details open downward.
 

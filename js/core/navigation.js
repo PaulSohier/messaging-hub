@@ -41,26 +41,20 @@ const NAV_CONFIG = {
   ],
 };
 
-// Tools — cross-cutting utilities that aren't tied to Brand or B&M/Digital,
-// so they live in their own sidebar mode (see setHubMode) rather than nested
-// under a specific audience. Same page ids as before; only the nav grouping moved.
+// Costs. The calculators are not in the menu for now: a section with hidden:true is not shown, but its pages
+// still belong to this mode and still open by link (for example ?page=iterable-migration).
 const TOOLS_NAV = [
-  {section:'Cost Modeling', items:[
-    {id:'p9', icon:'', label:'Full Opt-in Impact'},
-    {id:'p11', icon:'', label:'Iterable Migration'},
-    {id:'p12', icon:'', label:'FX Client Activations'},
-  ]},
-  // Older models: kept in the Hub with all their code and data, only moved out of
-  // the main menu. Click the group title to open it.
-  {section:'Older models', collapsed:true, items:[
-    {id:'p3', icon:'', label:'SMS Costs'},
-    {id:'p5', icon:'', label:'Twilio SMS calculator'},
-    {id:'p4', icon:'', label:'Global deployment cost'},
-    {id:'p6', icon:'', label:'Global deployment Twilio'},
-    {id:'p10', icon:'', label:'Opt-in cost impact (by journey)'},
-  ]},
   {section:'Methodology', items:[
     {id:'p7', icon:'', label:'How we calculate this'},
+  ]},
+  {section:'Hidden pages', hidden:true, items:[
+    {id:'p9',  icon:'', label:'Full Opt-in Impact'},
+    {id:'p11', icon:'', label:'Iterable Migration'},
+    {id:'p3',  icon:'', label:'SMS Costs'},
+    {id:'p5',  icon:'', label:'Twilio SMS calculator'},
+    {id:'p4',  icon:'', label:'Global deployment cost'},
+    {id:'p6',  icon:'', label:'Global deployment Twilio'},
+    {id:'p10', icon:'', label:'Opt-in cost impact (by journey)'},
   ]},
 ];
 // Xe currently has live Iterable journey data only — no sheet-fed library of
@@ -70,15 +64,22 @@ const XE_NAV = [
     {id:'p2', icon:'', label:'Customer journeys'},
   ]},
 ];
-const TOOLS_PAGE_IDS = TOOLS_NAV.flatMap(function(s){ return s.items.map(function(i){ return i.id; }); });
-// Activation — what is actually live today. Ria B&M only, FX Client only for now.
+// Activation: what is actually live today and what we plan to turn on. Ria B&M only, FX Client only for now.
 const ACTIVATION_NAV = [
   {section:'Activation', items:[
     {id:'p13', icon:'', label:'SMS activation map'},
     {id:'p14', icon:'', label:'Activation roadmap'},
+    {id:'p12', icon:'', label:'FX Client Activations'},
   ]},
 ];
-const ACTIVATION_PAGE_IDS = ['p13','p14'];
+// All page ids of a menu (hidden ones too) and the first page that is shown in the menu
+function navPageIds(sections){ return sections.flatMap(function(s){ return s.items.map(function(i){ return i.id; }); }); }
+function navFirstVisible(sections){
+  const shown = sections.filter(function(s){ return !s.hidden; });
+  return navPageIds(shown)[0] || navPageIds(sections)[0];
+}
+const TOOLS_PAGE_IDS = navPageIds(TOOLS_NAV);
+const ACTIVATION_PAGE_IDS = navPageIds(ACTIVATION_NAV);
 let hubMode = 'explore'; // 'explore', 'tools' or 'activation' — derived from the deep-linked tab at init, see INIT block
 
 function renderNavSections(sections){
@@ -86,6 +87,7 @@ function renderNavSections(sections){
   let html = '';
   window._navOpen = window._navOpen || {};
   sections.forEach(function(sec){
+    if(sec.hidden) return;   // not shown in the menu
     if(sec.collapsed){
       const hasActive = sec.items.some(function(i){ return i.id === activeTab; });
       const open = !!window._navOpen[sec.section] || hasActive;
@@ -102,9 +104,9 @@ function renderNavSections(sections){
     html += sec.collapsed ? '</div></div>' : '</div>';
   });
   nav.innerHTML = html;
-  const validIds = sections.flatMap(function(s){ return s.items.map(function(i){ return i.id; }); });
+  const validIds = navPageIds(sections);   // hidden pages stay valid, so their links keep working
   if(validIds.indexOf(activeTab) === -1){
-    activeTab = validIds[0] || 'p0';
+    activeTab = navFirstVisible(sections) || 'p0';
   }
 }
 
@@ -176,8 +178,8 @@ window.setHubMode = function(mode){
       renderPage('p2');
     }
   } else {
-    if(mode === 'tools' && TOOLS_PAGE_IDS.indexOf(activeTab) === -1) activeTab = TOOLS_PAGE_IDS[0];
-    if(mode === 'activation' && ACTIVATION_PAGE_IDS.indexOf(activeTab) === -1) activeTab = ACTIVATION_PAGE_IDS[0];
+    if(mode === 'tools' && TOOLS_PAGE_IDS.indexOf(activeTab) === -1) activeTab = navFirstVisible(TOOLS_NAV);
+    if(mode === 'activation' && ACTIVATION_PAGE_IDS.indexOf(activeTab) === -1) activeTab = navFirstVisible(ACTIVATION_NAV);
     activateNavTabFor(activeTab);
     renderPage(activeTab);
   }

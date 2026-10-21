@@ -68,18 +68,38 @@ try {
     if (h.notes) fail('[' + h.id + '] has a grey page note; use the status badge or the page content instead');
   }
   const badge = (id) => page.evaluate((id) => { const b = document.querySelector('#' + id + ' .hub-status'); return b ? b.className.replace('hub-status ', '').replace('hub-status--', '') : null; }, id);
-  const show = async (mode, i) => { await page.evaluate((m) => window.setHubMode(m), mode); await page.waitForTimeout(300); await page.locator('#sb-nav .nav-tab').nth(i).evaluate((e) => e.click()); await page.waitForTimeout(600); };
+  const view = () => page.evaluate(() => ({ url: location.pathname + location.search, active: (document.querySelector('.page.active') || {}).id, title: document.title }));
+  const open = async (q) => { await page.goto(base + '/index.html' + q); await page.waitForFunction(() => typeof window.setHubMode === 'function' && document.querySelectorAll('#sb-nav .nav-tab').length > 0, null, { timeout: 15000 }); await page.waitForTimeout(700); };
   await page.evaluate(() => { window.setBrand('ria'); window.setHubMode('explore'); }); await page.waitForTimeout(400);
   if (await badge('p0') !== 'ok') fail('[p0] the Messages Library badge should be green when the sheet is synced, it is ' + await badge('p0'));
-  await show('tools', 1);
+  await open('?page=iterable-migration');
   const costBadge = await badge('p11');
   if (costBadge !== 'ok') fail('[p11] the cost page badge should be green when synced, it is ' + costBadge);
+  await open('?page=sms-costs');
   if (await badge('p3') !== null) fail('[p3] the older cost pages should have no badge');
+  await open('?page=fx-client-activations');
+  if (await badge('p12') !== 'ok') fail('[p12] the FX Client Activations badge should be green when synced, it is ' + await badge('p12'));
+
+  // Pages that are not in the menu must still open by link and work
+  for (const slug of ['full-opt-in-impact', 'iterable-migration', 'sms-costs', 'twilio-sms-calculator', 'global-deployment-cost', 'global-deployment-twilio', 'opt-in-by-journey']) {
+    state.where = 'hidden page ' + slug;
+    await open('?page=' + slug); views += 1;
+    const text = await page.evaluate(() => { const p = document.querySelector('.page.active'); return p ? p.innerText : ''; });
+    if (text.trim().length < 20) fail('[' + slug + '] the page is empty when opened by link');
+    const inMenu = await page.evaluate(() => document.querySelectorAll('#sb-nav .nav-tab.active').length);
+    if (inMenu) fail('[' + slug + '] this page should not be in the menu');
+  }
+
+  // Menus: Costs and Activation show what we decided
+  state.where = 'menus';
+  const menu = async (mode) => { await page.evaluate((m) => window.setHubMode(m), mode); await page.waitForTimeout(300); return page.evaluate(() => Array.from(document.querySelectorAll('#sb-nav .nav-tab')).map((a) => a.dataset.tab)); };
+  await open('');
+  const costsMenu = await menu('tools'), actMenu = await menu('activation');
+  if (JSON.stringify(costsMenu) !== JSON.stringify(['p7'])) fail('[menus] the Costs menu should only show "How we calculate this" for now, it shows ' + JSON.stringify(costsMenu));
+  if (JSON.stringify(actMenu) !== JSON.stringify(['p13', 'p14', 'p12'])) fail('[menus] the Activation menu should show the map, the roadmap and FX Client Activations, it shows ' + JSON.stringify(actMenu));
 
   // Links: every page has its own readable address, Back and Forward work, old links still open
   state.where = 'links';
-  const view = () => page.evaluate(() => ({ url: location.pathname + location.search, active: (document.querySelector('.page.active') || {}).id, title: document.title }));
-  const open = async (q) => { await page.goto(base + '/index.html' + q); await page.waitForFunction(() => typeof window.setHubMode === 'function' && document.querySelectorAll('#sb-nav .nav-tab').length > 0, null, { timeout: 15000 }); await page.waitForTimeout(700); };
   const slugs = await page.evaluate(() => Array.from(document.querySelectorAll('.page')).filter((p) => p.id !== 'xe-placeholder').map((p) => ({ id: p.id, slug: (PAGE_META[p.id] || {}).slug })));
   for (const x of slugs) if (!x.slug) fail('[' + x.id + '] has no readable link name in PAGE_META (js/core/deep-links.js)');
   if (new Set(slugs.map((x) => x.slug)).size !== slugs.length) fail('two pages have the same link name in PAGE_META');
@@ -89,20 +109,26 @@ try {
   await page.evaluate(() => window.setHubMode('tools')); await page.waitForTimeout(300);
   const hrefs = await page.evaluate(() => Array.from(document.querySelectorAll('#sb-nav .nav-tab')).map((a) => a.tagName + ' ' + a.getAttribute('href')));
   if (!hrefs.length || hrefs.some((h) => !/^A .*\?page=[a-z-]+/.test(h))) fail('[links] every menu item should be a link with its own address, found ' + JSON.stringify(hrefs.slice(0, 3)));
-  if (await page.evaluate(() => navLinkClick({ ctrlKey: true }, 'p11', null)) !== true) fail('[links] Ctrl+click on a menu item must open a new tab (the link must not be blocked)');
-  await page.locator('#sb-nav .nav-tab[data-tab="p11"]').evaluate((e) => e.click()); await page.waitForTimeout(500);
+  if (await page.evaluate(() => navLinkClick({ ctrlKey: true }, 'p7', null)) !== true) fail('[links] Ctrl+click on a menu item must open a new tab (the link must not be blocked)');
   v = await view();
-  if (!v.url.includes('page=iterable-migration') || v.active !== 'p11') fail('[links] opening Iterable Migration should give ?page=iterable-migration, it is ' + v.url + ' (' + v.active + ')');
-  if (!v.title.startsWith('Iterable Migration')) fail('[links] the browser tab title should name the page, it is "' + v.title + '"');
+  if (!v.url.includes('page=methodology') || v.active !== 'p7') fail('[links] the Costs mode should open How we calculate this at ?page=methodology, it is ' + v.url + ' (' + v.active + ')');
+  await page.evaluate(() => window.setHubMode('activation')); await page.waitForTimeout(300);
+  await page.locator('#sb-nav .nav-tab[data-tab="p12"]').evaluate((e) => e.click()); await page.waitForTimeout(500);
+  v = await view();
+  if (!v.url.includes('page=fx-client-activations') || v.active !== 'p12') fail('[links] opening FX Client Activations should give ?page=fx-client-activations, it is ' + v.url + ' (' + v.active + ')');
+  if (!v.title.startsWith('FX Client Activations')) fail('[links] the browser tab title should name the page, it is "' + v.title + '"');
   await page.goBack(); await page.waitForTimeout(600);
   v = await view();
-  if (v.active !== 'p9') fail('[links] Back from Iterable Migration should return to the previous page (Full Opt-in Impact), it shows ' + v.active + ' at ' + v.url);
+  if (v.active !== 'p13') fail('[links] Back from FX Client Activations should return to the previous page (SMS activation map), it shows ' + v.active + ' at ' + v.url);
+  await page.goBack(); await page.waitForTimeout(600);
+  v = await view();
+  if (v.active !== 'p7') fail('[links] Back should return to How we calculate this, it shows ' + v.active + ' at ' + v.url);
   await page.goBack(); await page.waitForTimeout(600);
   v = await view();
   if (v.active !== 'p0' || v.url !== '/index.html') fail('[links] Back should return to the start page, it shows ' + v.active + ' at ' + v.url);
   await page.goForward(); await page.waitForTimeout(600);
   v = await view();
-  if (v.active !== 'p9') fail('[links] Forward should go to Full Opt-in Impact, it shows ' + v.active);
+  if (v.active !== 'p7') fail('[links] Forward should go to How we calculate this, it shows ' + v.active);
   await open('?tab=p11');
   v = await view();
   if (v.active !== 'p11' || !v.url.includes('page=iterable-migration') || v.url.includes('tab=')) fail('[links] an old link (?tab=p11) should open the page and turn into the readable link, it is ' + v.url + ' (' + v.active + ')');
