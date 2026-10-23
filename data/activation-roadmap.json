@@ -57,37 +57,23 @@
       "week": 1,
       "row": "europe",
       "events": [
-        "Requires Interview"
+        "Transaction Needs Information"
       ],
-      "markets": "UK, ES, FR, IT, DE",
+      "markets": "UK, ES, DE, BE",
       "status": "confirmed",
       "ticket": "CGD-6668",
       "marketList": [
-        "France",
+        "United Kingdom",
         "Spain",
         "Germany",
-        "Italy",
-        "United Kingdom"
-      ]
-    },
-    {
-      "week": 1,
-      "row": "australia",
-      "events": [
-        "Requires Interview"
-      ],
-      "markets": "AU",
-      "status": "confirmed",
-      "ticket": "CGD-6668",
-      "marketList": [
-        "Australia"
+        "Belgium"
       ]
     },
     {
       "week": 2,
       "row": "europe",
       "events": [
-        "Transaction Ready for Pickup"
+        "Requires Interview"
       ],
       "markets": "UK, ES, FR, IT, DE",
       "status": "planned",
@@ -104,7 +90,7 @@
       "week": 2,
       "row": "australia",
       "events": [
-        "Transaction Ready for Pickup"
+        "Requires Interview"
       ],
       "markets": "AU",
       "status": "planned",
@@ -117,11 +103,11 @@
       "week": 3,
       "row": "europe",
       "events": [
-        "Transaction Needs Information",
         "Transaction Canceled"
       ],
       "markets": "UK, ES, FR, IT, DE",
       "status": "planned",
+      "ticket": "CGD-6735",
       "marketList": [
         "France",
         "Spain",
@@ -134,11 +120,11 @@
       "week": 3,
       "row": "australia",
       "events": [
-        "Transaction Needs Information",
         "Transaction Canceled"
       ],
       "markets": "AU",
       "status": "planned",
+      "ticket": "CGD-6735",
       "marketList": [
         "Australia"
       ]
@@ -152,6 +138,7 @@
       ],
       "markets": "UK, ES, FR, IT, DE",
       "status": "planned",
+      "ticket": "CGD-6736",
       "marketList": [
         "France",
         "Spain",
@@ -169,6 +156,7 @@
       ],
       "markets": "AU",
       "status": "planned",
+      "ticket": "CGD-6736",
       "marketList": [
         "Australia"
       ]
@@ -182,6 +170,7 @@
       ],
       "markets": "UK, ES, FR, IT, DE",
       "status": "planned",
+      "ticket": "CGD-6737",
       "marketList": [
         "France",
         "Spain",
@@ -199,6 +188,7 @@
       ],
       "markets": "AU",
       "status": "planned",
+      "ticket": "CGD-6737",
       "marketList": [
         "Australia"
       ]
@@ -211,6 +201,7 @@
       ],
       "markets": "UK, ES, FR, IT, DE",
       "status": "planned",
+      "ticket": "CGD-6738",
       "marketList": [
         "France",
         "Spain",
@@ -227,6 +218,7 @@
       ],
       "markets": "AU",
       "status": "planned",
+      "ticket": "CGD-6738",
       "marketList": [
         "Australia"
       ]
